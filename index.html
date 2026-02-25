@@ -392,25 +392,25 @@
       ⚡ Instantly data · Synced Feb 24, 2026 via BridgeKit
     </div>
     <div class="section-title">Campaign Funnel Performance <button class="info-btn" onclick="openModal('funnel')">i</button></div>
-    <div class="section-sub">116,252 emails sent across 5 active campaigns — full-funnel conversion breakdown</div>
+    <div class="section-sub">8,909 emails sent across 1 active campaign — full-funnel conversion breakdown</div>
 
     <div class="funnel">
       <div class="funnel-step f1">
-        <div class="funnel-num">116,252</div>
+        <div class="funnel-num">8,909</div>
         <div class="funnel-label">Emails Sent</div>
         <div class="funnel-rate blue">100%</div>
       </div>
       <div class="funnel-arrow">›</div>
       <div class="funnel-step f2">
-        <div class="funnel-num">877</div>
+        <div class="funnel-num">56</div>
         <div class="funnel-label">Total Replies</div>
-        <div class="funnel-rate purple">0.75%</div>
+        <div class="funnel-rate purple">0.63%</div>
       </div>
       <div class="funnel-arrow">›</div>
       <div class="funnel-step f3">
-        <div class="funnel-num" id="funnel-opps">239</div>
+        <div class="funnel-num" id="funnel-opps">21</div>
         <div class="funnel-label">Opportunities</div>
-        <div class="funnel-rate green">27.4% of replies</div>
+        <div class="funnel-rate green">37.5% of replies</div>
       </div>
       <div class="funnel-arrow">›</div>
       <div class="funnel-step f4">
@@ -421,9 +421,9 @@
     </div>
 
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;margin-bottom:28px;">
-      <div style="font-size:12px;color:var(--text-muted);">📧 <strong style="color:var(--text);">484 emails</strong> per opportunity</div>
+      <div style="font-size:12px;color:var(--text-muted);">📧 <strong style="color:var(--text);">424 emails</strong> per opportunity</div>
       <div style="font-size:12px;color:var(--text-muted);">📅 <strong style="color:var(--text);">1 meeting</strong> every ~20 leads</div>
-      <div style="font-size:12px;color:var(--text-muted);">📈 <strong style="color:var(--green);">Reply → Opp rate: 27.4%</strong> — strong qualifier</div>
+      <div style="font-size:12px;color:var(--text-muted);">📈 <strong style="color:var(--green);">Reply → Opp rate: 37.5%</strong> — strong qualifier</div>
     </div>
 
     <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Active Campaigns</div>
@@ -542,19 +542,19 @@
 
     <div class="health-grid">
       <div class="health-card">
-        <div class="health-val" style="color:var(--purple);">0.75%</div>
+        <div class="health-val" style="color:var(--purple);">0.63%</div>
         <div class="health-label">Reply Rate <button class="info-btn" onclick="openModal('reply-rate')">i</button></div>
-        <div class="health-desc">877 replies from 116,252 emails sent. Industry benchmark: 0.5–1%</div>
+        <div class="health-desc">56 replies from 8,909 emails sent. Industry benchmark: 0.5–1%</div>
       </div>
       <div class="health-card">
-        <div class="health-val" style="color:var(--green);">27.4%</div>
+        <div class="health-val" style="color:var(--green);">37.5%</div>
         <div class="health-label">Reply → Opportunity <button class="info-btn" onclick="openModal('reply-opp')">i</button></div>
         <div class="health-desc">Nearly 1 in 3 replies becomes a qualified opportunity — strong signal quality</div>
       </div>
       <div class="health-card">
-        <div class="health-val" style="color:var(--amber);">5.0%</div>
+        <div class="health-val" style="color:var(--amber);">38.1%</div>
         <div class="health-label">Opp → Meeting <button class="info-btn" onclick="openModal('opp-meeting')">i</button></div>
-        <div class="health-desc">12 meeting requests from 239 opportunities. Every 20 leads generates a meeting</div>
+        <div class="health-desc">8 meeting requests from 21 opportunities. Every 11 leads generates a meeting</div>
       </div>
       <div class="health-card">
         <div class="health-val" id="health-next-meeting" style="color:var(--accent);">—</div>
@@ -562,7 +562,7 @@
         <div class="health-desc">Estimated leads needed until the next meeting request at 5% conversion rate</div>
       </div>
       <div class="health-card">
-        <div class="health-val" style="color:var(--teal);">484</div>
+        <div class="health-val" style="color:var(--teal);">424</div>
         <div class="health-label">Emails / Opportunity <button class="info-btn" onclick="openModal('emails-opp')">i</button></div>
         <div class="health-desc">Cost to generate 1 qualified lead. Use this to plan list size for target outcomes</div>
       </div>
@@ -627,11 +627,11 @@ const MONTH_DAYS   = { Agosto:31, Septiembre:30, Octubre:31, Noviembre:30, Dicie
 
 // Instantly data — BridgeKit pull Feb 24, 2026
 const INSTANTLY = {
-  emailsSent: 116252,
-  replies: 877,
-  opportunities: 239,
-  meetings: 12,
-  campaigns: 5
+  emailsSent: 8909,
+  replies: 56,
+  opportunities: 21,
+  meetings: 8,
+  campaigns: 1
 };
 
 let trendChart = null, typeChart = null;
@@ -963,7 +963,7 @@ const MODALS = {
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> The number of replies that explicitly requested a meeting or call with Brian.<br><br>
 <strong>Where it comes from:</strong> Pulled directly from Instantly via BridgeKit on Feb 24, 2026. Instantly tags each reply that its AI classifies as a meeting request.<br><br>
-<strong>Current count:</strong> <strong>12 meetings</strong> from 239 qualified opportunities — a 5% conversion rate from opportunity to meeting.<br><br>
+<strong>Current count:</strong> <strong>8 meetings</strong> from 21 qualified opportunities — a 5% conversion rate from opportunity to meeting.<br><br>
 <strong>Why it matters:</strong> Meeting requests are the highest-intent signal in the funnel. Each one represents a warm prospect ready for a sales conversation.`
   },
   'kpi-forecast': {
@@ -981,10 +981,10 @@ The 35% optimistic boost accounts for the new <strong>Custom Search Query</stron
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> A full-funnel view from cold email sends down to meeting requests.<br><br>
 <strong>Where it comes from:</strong> All four funnel metrics were pulled from Instantly via BridgeKit on Feb 24, 2026:<br>
-<div class="formula">Emails Sent:  116,252
-Total Replies:    877  (0.75% reply rate)
-Opportunities:    239  (27.4% of replies)
-Meetings:          12  (5.0% of opportunities)</div>
+<div class="formula">Emails Sent:  8,909
+Total Replies:    56  (0.63% reply rate)
+Opportunities:    21  (37.5% of replies)
+Meetings:          12  (38.1% of opportunities)</div>
 <strong>How Instantly defines these:</strong><br>
 • <strong>Replies</strong> = any reply received to a campaign email<br>
 • <strong>Opportunities</strong> = replies that Instantly's AI classifies as positive/qualified<br>
@@ -1056,15 +1056,15 @@ Two paces are shown:<br>
     title: 'Reply Rate',
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> The percentage of sent emails that received any reply.<br><br>
-<div class="formula">Reply Rate = 877 replies ÷ 116,252 emails sent = 0.75%</div>
-<strong>Industry context:</strong> Cold email reply rates typically range from <strong>0.5% to 1%</strong>. Brian's 0.75% sits comfortably within the healthy range, indicating good list quality and message relevance.<br><br>
-<strong>Where it comes from:</strong> Both the reply count (877) and emails sent (116,252) are from Instantly, pulled via BridgeKit on Feb 24, 2026.`
+<div class="formula">Reply Rate = 56 replies ÷ 8,909 emails sent = 0.63%</div>
+<strong>Industry context:</strong> Cold email reply rates typically range from <strong>0.5% to 1%</strong>. Brian's 0.63% sits comfortably within the healthy range, indicating good list quality and message relevance.<br><br>
+<strong>Where it comes from:</strong> Both the reply count (56) and emails sent (8,909) are from Instantly, pulled via BridgeKit on Feb 24, 2026.`
   },
   'reply-opp': {
     title: 'Reply → Opportunity Rate',
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> Of all replies received, what percentage were positive/qualified opportunities.<br><br>
-<div class="formula">Reply → Opp = 239 opportunities ÷ 877 total replies = 27.4%</div>
+<div class="formula">Reply → Opp = 21 opportunities ÷ 56 total replies = 37.5%</div>
 <strong>What this means:</strong> Nearly <strong>1 in 3 replies</strong> is a qualified lead — this is a strong signal quality indicator. It means Brian's targeting and messaging are attracting genuinely interested prospects, not just curious or unqualified replies.<br><br>
 <strong>Where it comes from:</strong> Both figures pulled from Instantly via BridgeKit on Feb 24, 2026.`
   },
@@ -1072,7 +1072,7 @@ Two paces are shown:<br>
     title: 'Opportunity → Meeting Rate',
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> Of all qualified opportunities, what percentage explicitly requested a meeting.<br><br>
-<div class="formula">Opp → Meeting = 12 meetings ÷ 239 opportunities = 5.0%</div>
+<div class="formula">Opp → Meeting = 8 meetings ÷ 21 opportunities = 38.1%</div>
 <strong>What this means:</strong> For every 20 opportunities (leads), Brian generates approximately 1 meeting request. This is a healthy conversion rate for cold outreach at scale.<br><br>
 <strong>Where it comes from:</strong> Instantly's AI classifies replies as meeting requests. Both figures were pulled via BridgeKit on Feb 24, 2026.`
   },
@@ -1080,7 +1080,7 @@ Two paces are shown:<br>
     title: 'Leads to Next Meeting',
     source: 'calc', sourceLabel: 'Calculated: Instantly + Live Sheet',
     body: `<strong>What it is:</strong> An estimate of how many more leads are needed before the next meeting request comes in.<br><br>
-<div class="formula">Leads per Meeting = ROUND(239 opps ÷ 12 meetings) = ~20
+<div class="formula">Leads per Meeting = ROUND(21 opps ÷ 8 meetings) = ~20
 Leads to Next    = 20 - (Total Leads mod 20)</div>
 <strong>Example:</strong> If Brian has 247 total leads and meetings arrive every ~20 leads, then he needs about 13 more leads before the next meeting is statistically expected.<br><br>
 <strong>Live element:</strong> The total lead count updates from the Google Sheet, so this number changes with every refresh.`
@@ -1089,7 +1089,7 @@ Leads to Next    = 20 - (Total Leads mod 20)</div>
     title: 'Emails per Opportunity',
     source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
     body: `<strong>What it is:</strong> How many emails need to be sent, on average, to generate one qualified lead opportunity.<br><br>
-<div class="formula">Emails per Opp = 116,252 emails ÷ 239 opportunities = 484</div>
+<div class="formula">Emails per Opp = 8,909 emails ÷ 21 opportunities = 424</div>
 <strong>How to use this:</strong> This is Brian's "cost per lead" in email units. If you want to hit 50 new opportunities in March, you need to have roughly <strong>24,200 emails</strong> queued up.<br><br>
 <strong>Why it matters:</strong> This metric is essential for capacity planning — it directly connects list size and send volume to expected lead output.`
   },
@@ -1098,7 +1098,7 @@ Leads to Next    = 20 - (Total Leads mod 20)</div>
     source: 'calc', sourceLabel: 'Calculated: Instantly + Live Sheet',
     body: `<strong>What it is:</strong> An estimate of how many new meeting requests Brian can expect in March 2026.<br><br>
 <div class="formula">March Meetings = ROUND(March Conservative Forecast × 5%)</div>
-<strong>The 5% rate</strong> comes from the historical Instantly data: 12 meetings from 239 opportunities = 5.0% conversion.<br><br>
+<strong>The 5% rate</strong> comes from the historical Instantly data: 8 meetings from 21 opportunities = 38.1% conversion.<br><br>
 <strong>The March forecast</strong> uses the conservative scenario (current Leads/Day × 31 days), so this estimate is intentionally conservative. With the new campaign ramping, actual results could be higher.<br><br>
 <strong>Live element:</strong> This recalculates automatically when you refresh sheet data, since it depends on the current Leads/Day pace.`
   }
