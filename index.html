@@ -497,7 +497,7 @@
         </div>
       </div>
       <div class="scenario-row">
-        <div class="scenario-label" style="color:var(--green);font-weight:600;">Baseline (Jan–Feb avg)</div>
+        <div class="scenario-label" style="color:var(--green);font-weight:600;">Baseline (Dec–Feb avg)</div>
         <div class="scenario-bar-bg">
           <div class="scenario-bar green" id="bar-baseline" style="width:0%;">—</div>
         </div>
@@ -511,8 +511,8 @@
     </div>
 
     <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:14px 18px;font-size:13px;line-height:1.7;">
-      <strong style="color:var(--amber);">✦ Custom Search Query campaign effect</strong><br>
-      <span style="color:var(--text-muted);" id="new-campaign-note">Launched Feb 20, this campaign is only days old and hasn't fully contributed to the lead count yet. As it ramps up through March, it has the potential to push leads well above the baseline — making the optimistic scenario the most likely if engagement holds.</span>
+      <strong style="color:var(--amber);">✦ Shipping Rate Negotiation campaign</strong><br>
+      <span style="color:var(--text-muted);" id="new-campaign-note">Launched Dec 2, 2025, this campaign has been running for ~3 months and is now at full volume. With 178,822 emails sent and strong engagement, March projections are based on current momentum.</span>
     </div>
   </div>
 
@@ -577,10 +577,10 @@
   <!-- February Projection -->
   <div class="section">
     <div class="section-title" id="proj-title">February Projection</div>
-    <div class="section-sub">How February is tracking vs January</div>
+    <div class="section-sub">How February is tracking vs December</div>
     <div style="margin-bottom:20px;">
       <div class="proj-row">
-        <div class="proj-label">January (actual)</div>
+        <div class="proj-label">December (actual)</div>
         <div class="proj-bar-bg"><div class="proj-bar blue" id="proj-jan-bar" style="width:0%;">—</div></div>
       </div>
       <div class="proj-row">
@@ -799,14 +799,14 @@ function renderDashboard(rows) {
   }
 
   const febCount  = byMonth['Febrero'];
-  const janCount  = byMonth['Enero'];
+  const decCount  = byMonth['Diciembre'];
   const febRate   = +(febCount / febDays).toFixed(2);
   const daysLeft  = 28 - febDays;
   const febProj   = Math.round(febCount + febRate * daysLeft);
 
   // March scenarios
   const marchConservative = Math.round(febRate * 31);
-  const marchBaseline     = Math.round((janCount + febProj) / 2);
+  const marchBaseline     = Math.round((decCount + febProj) / 2);
   const marchOptimistic   = Math.round(marchConservative * 1.35); // ~35% boost from new campaign
 
   // ── KPIs ──
@@ -918,12 +918,12 @@ function renderDashboard(rows) {
   document.getElementById('health-meetings-march').textContent = '~' + marchMeetings;
 
   // ── Feb Projection bars ──
-  const maxBar = Math.max(janCount, febProj, 70);
+  const maxBar = Math.max(decCount, febProj, 70);
   const bpct = v => Math.min(97, Math.round(v / maxBar * 100));
   document.getElementById('proj-title').textContent =
     `February Projection (${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining)`;
-  document.getElementById('proj-jan-bar').style.width   = bpct(janCount) + '%';
-  document.getElementById('proj-jan-bar').textContent   = janCount;
+  document.getElementById('proj-jan-bar').style.width   = bpct(decCount) + '%';
+  document.getElementById('proj-jan-bar').textContent   = decCount;
   document.getElementById('proj-sofar-bar').style.width = bpct(febCount) + '%';
   document.getElementById('proj-sofar-bar').textContent = febCount;
   document.getElementById('proj-pace-bar').style.width  = bpct(febProj) + '%';
@@ -988,7 +988,7 @@ const MODALS = {
 <strong>How it's calculated:</strong><br>
 <div class="formula">Conservative = Leads/Day × 31 days
 Optimistic   = Conservative × 1.35</div>
-The 35% optimistic boost accounts for the new <strong>Custom Search Query</strong> campaign launched Feb 20 — it's only a few days old and hasn't reached full volume yet. As it ramps through March, it should meaningfully lift the daily pace.<br><br>
+The 35% optimistic boost accounts for potential increased list volume and engagement. The <strong>Shipping Rate Negotiation</strong> campaign launched Dec 2, 2025 is now at full volume with 178,822 emails sent.<br><br>
 <strong>Why it matters:</strong> This gives Brian and the client a data-backed range to set expectations for the month ahead.`
   },
   'funnel': {
@@ -1043,9 +1043,9 @@ February shows actual data through the latest date in the sheet, with a projecte
     body: `<strong>What it is:</strong> Three scenarios projecting how many leads Brian will generate in March 2026.<br><br>
 <strong>How each scenario is calculated:</strong><br>
 <div class="formula">Conservative = current Leads/Day × 31 days
-Baseline     = (January count + Feb projected) ÷ 2
+Baseline     = (December count + Feb projected) ÷ 2
 Optimistic   = Conservative × 1.35</div>
-<strong>The new campaign factor:</strong> The <strong>Custom Search Query</strong> campaign launched Feb 20 — just days ago. It hasn't reached full send volume yet. As it ramps up through March, it's expected to add meaningful volume on top of the current pace, making the Optimistic scenario the most realistic if engagement holds.<br><br>
+<strong>Campaign status:</strong> The <strong>Shipping Rate Negotiation</strong> campaign launched Dec 2, 2025 is now fully ramped with 178,822 emails sent. March projections are based on current momentum and engagement rates.<br><br>
 <strong>Why it matters:</strong> These scenarios give the client a realistic range to plan around — not just a single number.`
   },
   'milestones': {
