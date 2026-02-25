@@ -392,7 +392,7 @@
       ⚡ Instantly data · Synced Feb 25, 2026 via BridgeKit
     </div>
     <div class="section-title">Campaign Funnel Performance <button class="info-btn" onclick="openModal('funnel')">i</button></div>
-    <div class="section-sub">178,822 emails sent across 1 active campaign — full-funnel conversion breakdown</div>
+    <div class="section-sub">178,822 emails sent across 10 campaigns (1 active, 3 completed, 5 paused) — full-funnel conversion breakdown</div>
 
     <div class="funnel">
       <div class="funnel-step f1">
@@ -426,17 +426,92 @@
       <div style="font-size:12px;color:var(--text-muted);">📈 <strong style="color:var(--green);">Reply → Opp rate: 20.2%</strong> — strong qualifier</div>
     </div>
 
-    <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Active Campaigns</div>
-    <div class="campaign-grid">
-      <div class="campaign-pill" style="grid-column: span 2;">
-        <div class="campaign-dot"></div>
-        <div>
-          <div class="campaign-name">Shipping Rate Negotiation</div>
-          <div class="campaign-meta">Launched Dec 2, 2025 · 3-step · 6 variants</div>
-          <div class="campaign-meta" style="margin-top:6px;color:var(--text-muted);">
-            <strong>Step 1:</strong> Initial outreach (4 variants) · 
-            <strong>Step 2:</strong> Quick follow-up · 
-            <strong>Step 3:</strong> Final value pitch
+    <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">All Campaigns (10 total)</div>
+    
+    <!-- Active Campaign -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🟢 Active (1)</div>
+      <div class="campaign-grid">
+        <div class="campaign-pill" style="grid-column: span 2; border-left: 3px solid var(--green);">
+          <div class="campaign-dot"></div>
+          <div>
+            <div class="campaign-name">Shipping Rate Negotiation - 12/2/25</div>
+            <div class="campaign-meta">Launched Dec 2, 2025 · 3-step · 6 variants</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Campaigns -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">✓ Completed (3)</div>
+      <div class="campaign-grid" style="gap:8px;">
+        <div class="campaign-pill" style="border-left: 3px solid var(--blue);">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Clarity in a Complex Contract Maze</div>
+            <div class="campaign-meta">July 11, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--blue);">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">No-Risk, Pay-for-Performance Guarantee</div>
+            <div class="campaign-meta">July 11, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--blue);">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Market Benchmarking, Proprietary Data</div>
+            <div class="campaign-meta">July 11, 2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paused Campaigns -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⏸ Paused (5)</div>
+      <div class="campaign-grid" style="gap:8px;">
+        <div class="campaign-pill" style="border-left: 3px solid var(--amber); opacity:0.8;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Shipping Rate Negotiation</div>
+            <div class="campaign-meta">Sep 11, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--amber); opacity:0.8;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Parcel Benchmark</div>
+            <div class="campaign-meta">Aug 21, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--amber); opacity:0.8;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Clarity in Contract Maze (07/31)</div>
+            <div class="campaign-meta">July 31, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--amber); opacity:0.8;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Market Benchmarking (07/31)</div>
+            <div class="campaign-meta">Aug 1, 2025</div>
+          </div>
+        </div>
+        <div class="campaign-pill" style="border-left: 3px solid var(--amber); opacity:0.8;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">No-Risk Guarantee (07/31)</div>
+            <div class="campaign-meta">Aug 1, 2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draft -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📝 Draft (1)</div>
+      <div class="campaign-grid">
+        <div class="campaign-pill" style="border-left: 3px solid var(--text-muted); opacity:0.6;">
+          <div>
+            <div class="campaign-name" style="font-size:13px;">Zane - Sample</div>
+            <div class="campaign-meta">Sep 9, 2025</div>
           </div>
         </div>
       </div>
