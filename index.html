@@ -414,9 +414,9 @@
       </div>
       <div class="funnel-arrow">›</div>
       <div class="funnel-step f4">
-        <div class="funnel-num">12</div>
+        <div class="funnel-num" id="funnel-meetings">7</div>
         <div class="funnel-label">Meetings</div>
-        <div class="funnel-rate amber">5% of opps</div>
+        <div class="funnel-rate amber" id="funnel-meetings-rate">33% of opps</div>
       </div>
     </div>
 
@@ -811,6 +811,9 @@ function renderDashboard(rows) {
   document.getElementById('kpi-projected').textContent = marchConservative + '–' + marchOptimistic;
   document.getElementById('header-total').textContent  = `${total} Total Leads`;
   document.getElementById('kpi-meetings-count').textContent = meetings;
+  document.getElementById('funnel-meetings').textContent = meetings;
+  const meetingRate = total > 0 ? ((meetings / total) * 100).toFixed(1) : 0;
+  document.getElementById('funnel-meetings-rate').textContent = meetingRate + '% of leads';
 
   // Funnel opportunities (live from sheet)
   document.getElementById('funnel-opps').textContent = total;
