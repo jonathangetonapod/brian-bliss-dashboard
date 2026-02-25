@@ -9,22 +9,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #1a1a2e;
-    --card: #16213e;
-    --card-border: #2a2d4a;
+    /* Source1 Parcel Brand Colors */
+    --bg: #0a1628;
+    --card: #0C2C74;
+    --card-border: #1a3d8f;
     --text: #ffffff;
-    --text-muted: #a0a8b8;
-    --accent: #00a651;
-    --accent-glow: rgba(0,166,81,0.15);
-    --green: #00a651;
-    --green-glow: rgba(0,166,81,0.12);
-    --amber: #fbbf24;
-    --amber-glow: rgba(251,191,36,0.12);
+    --text-muted: #a8b8d0;
+    --accent: #fccc04;
+    --accent-glow: rgba(252,204,4,0.15);
+    --green: #00d084;
+    --green-glow: rgba(0,208,132,0.12);
+    --amber: #fccc04;
+    --amber-glow: rgba(252,204,4,0.12);
     --red: #f87171;
     --purple: #a78bfa;
     --purple-glow: rgba(167,139,250,0.12);
-    --teal: #2dd4bf;
-    --teal-glow: rgba(45,212,191,0.12);
+    --teal: #00d084;
+    --teal-glow: rgba(0,208,132,0.12);
+    --blue: #0693e3;
+    --navy: #0C2C74;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -153,10 +156,10 @@
     transition:opacity 0.2s;
   }
   .funnel-step:hover { opacity:0.85; }
-  .funnel-step.f1 { background:linear-gradient(135deg,rgba(74,144,217,0.3),rgba(74,144,217,0.15)); border:1px solid rgba(74,144,217,0.3); }
-  .funnel-step.f2 { background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(167,139,250,0.15)); border:1px solid rgba(167,139,250,0.3); }
-  .funnel-step.f3 { background:linear-gradient(135deg,rgba(46,204,113,0.3),rgba(46,204,113,0.15)); border:1px solid rgba(46,204,113,0.3); }
-  .funnel-step.f4 { background:linear-gradient(135deg,rgba(251,191,36,0.3),rgba(251,191,36,0.15)); border:1px solid rgba(251,191,36,0.3); }
+  .funnel-step.f1 { background:linear-gradient(135deg,rgba(6,147,227,0.3),rgba(6,147,227,0.15)); border:1px solid rgba(6,147,227,0.3); }
+  .funnel-step.f2 { background:linear-gradient(135deg,rgba(12,44,116,0.5),rgba(12,44,116,0.3)); border:1px solid rgba(12,44,116,0.5); }
+  .funnel-step.f3 { background:linear-gradient(135deg,rgba(0,208,132,0.3),rgba(0,208,132,0.15)); border:1px solid rgba(0,208,132,0.3); }
+  .funnel-step.f4 { background:linear-gradient(135deg,rgba(252,204,4,0.3),rgba(252,204,4,0.15)); border:1px solid rgba(252,204,4,0.3); }
   .funnel-arrow { display:flex; align-items:center; color:var(--card-border); font-size:18px; flex-shrink:0; }
   .funnel-num { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff; line-height:1; }
   .funnel-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-top:3px; }
