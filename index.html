@@ -134,12 +134,24 @@
             <div class="card rounded-xl p-6">
                 <h2 class="text-lg font-semibold mb-4">Lead Types</h2>
                 <p class="text-sm text-gray-400 mb-4">How leads are responding to outreach</p>
+                <div class="h-64 mb-4">
+                    <canvas id="leadTypesChart"></canvas>
+                </div>
                 <div class="space-y-3" id="leadTypes">
                     <div class="flex justify-between items-center">
                         <span class="text-sm">Loading...</span>
                         <span class="text-sm font-medium">—</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Industry Breakdown -->
+        <div class="card rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-4">Industry Breakdown</h2>
+            <p class="text-sm text-gray-400 mb-4">Distribution of leads by industry</p>
+            <div class="h-72">
+                <canvas id="industryChart"></canvas>
             </div>
         </div>
 
@@ -239,6 +251,8 @@
         };
 
         let chart = null;
+        let leadTypesChart = null;
+        let industryChart = null;
         let leadsData = [];
         
         // Load Instantly stats from synced JSON
@@ -418,6 +432,23 @@
                     </div>
                 `).join('');
             
+            // Update lead types chart
+            updateLeadTypesChart(typeCount);
+            
+            // Count industries
+            const industryCount = {};
+            leadsData.forEach(l => {
+                let industry = l.Industry || 'Unknown';
+                // Simplify industry names
+                if (industry.includes('/')) {
+                    industry = industry.split('/')[0].trim();
+                }
+                industryCount[industry] = (industryCount[industry] || 0) + 1;
+            });
+            
+            // Update industry chart
+            updateIndustryChart(industryCount);
+            
             // Monthly breakdown
             const monthlyData = {};
             leadsData.forEach(l => {
@@ -479,7 +510,7 @@
             if (chart) chart.destroy();
             
             chart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: months.map(m => {
                         const [year, month] = m.split('-');
@@ -488,10 +519,16 @@
                     datasets: [{
                         label: 'Leads',
                         data: months.map(m => data[m]),
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }]
                 },
                 options: {
@@ -509,6 +546,100 @@
                         x: {
                             grid: { display: false },
                             ticks: { color: 'rgba(255,255,255,0.5)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateLeadTypesChart(typeCount) {
+            const ctx = document.getElementById('leadTypesChart').getContext('2d');
+            
+            if (leadTypesChart) leadTypesChart.destroy();
+            
+            const colors = {
+                'Interested / More Info': '#3b82f6',
+                'Meeting Request': '#22c55e',
+                'Forwarded Internally': '#a855f7',
+                'Other': '#6b7280',
+                'Disqualified': '#ef4444'
+            };
+            
+            const labels = Object.keys(typeCount);
+            const data = Object.values(typeCount);
+            const backgroundColors = labels.map(l => colors[l] || '#6b7280');
+            
+            leadTypesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'rgba(0,0,0,0.3)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'rgba(255,255,255,0.7)',
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateIndustryChart(industryCount) {
+            const ctx = document.getElementById('industryChart').getContext('2d');
+            
+            if (industryChart) industryChart.destroy();
+            
+            // Sort by count and take top 10
+            const sorted = Object.entries(industryCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const labels = sorted.map(([name]) => name.length > 25 ? name.slice(0, 25) + '...' : name);
+            const data = sorted.map(([, count]) => count);
+            
+            industryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Leads',
+                        data: data,
+                        backgroundColor: [
+                            '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ef4444',
+                            '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } }
                         }
                     }
                 }
