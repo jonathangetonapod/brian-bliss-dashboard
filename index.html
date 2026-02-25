@@ -721,6 +721,7 @@ function parseCSV(csv) {
     headers[0] = 'Month';
   }
   
+  const validMonths = ['Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero'];
   return lines.slice(1).filter(l => l.trim()).map(l => {
     const vals = splitLine(l);
     const row = headers.reduce((o, h, i) => ({ ...o, [h.trim() || 'Month']: (vals[i] || '').replace(/^"|"$/g, '').trim() }), {});
@@ -743,7 +744,7 @@ function parseCSV(csv) {
     }
     
     return row;
-  }).filter(r => r['Month'] && r['Month'].length > 0);
+  }).filter(r => r['Month'] && validMonths.includes(r['Month']));
 }
 
 function splitLine(line) {
@@ -772,11 +773,12 @@ function renderDashboard(rows) {
     if (m in byMonth) byMonth[m]++;
     const t = (row['Response Type'] || '').toLowerCase();
     // Count by actual response types from Brian Bliss sheet
-    if (t.includes('meeting') || t.includes('call request') || t.includes('call scheduled')) {
+    // Meeting = Call Requested, Meeting Requested, Meeting Scheduled, Meeting Completed
+    if (t.includes('call requested') || t.includes('meeting requested') || t.includes('meeting scheduled') || t.includes('meeting completed')) {
       meetings++;
     } else if (t.includes('escalat') || t.includes('forward')) {
       forwarded++;
-    } else if (t.includes('interested') || t.includes('send info') || t.includes('rate')) {
+    } else if (t.includes('interested') || t.includes('send info') || t.includes('rate') || t.includes('high priority') || t.includes('follow up')) {
       interested++;
     } else {
       other++;
@@ -815,8 +817,8 @@ function renderDashboard(rows) {
   const meetingRate = total > 0 ? ((meetings / total) * 100).toFixed(1) : 0;
   document.getElementById('funnel-meetings-rate').textContent = meetingRate + '% of leads';
 
-  // Funnel opportunities (live from sheet)
-  document.getElementById('funnel-opps').textContent = total;
+  // Funnel opportunities (from Instantly)
+  document.getElementById('funnel-opps').textContent = INSTANTLY.opportunities;
 
   // ── Sync time ──
   const now = new Date();
