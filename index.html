@@ -373,7 +373,7 @@
       <div class="kpi-badge green" id="kpi-rate-badge">Current pace</div>
     </div>
     <div class="kpi amber">
-      <div class="kpi-value">12</div>
+      <div class="kpi-value" id="kpi-meetings-count">—</div>
       <div class="kpi-label">Meeting Requests <button class="info-btn" onclick="openModal('kpi-meetings')">i</button></div>
       <div class="kpi-badge amber">High intent</div>
     </div>
@@ -770,11 +770,17 @@ function renderDashboard(rows) {
   rows.forEach(row => {
     const m = row['Month'];
     if (m in byMonth) byMonth[m]++;
-    const t = row['Response Type'] || '';
-    if      (t === 'Meeting Request')                   meetings++;
-    else if (t === 'Forwarded Internally')              forwarded++;
-    else if (t === 'Interested / Requesting More Info') interested++;
-    else                                                other++;
+    const t = (row['Response Type'] || '').toLowerCase();
+    // Count by actual response types from Brian Bliss sheet
+    if (t.includes('meeting') || t.includes('call request') || t.includes('call scheduled')) {
+      meetings++;
+    } else if (t.includes('escalat') || t.includes('forward')) {
+      forwarded++;
+    } else if (t.includes('interested') || t.includes('send info') || t.includes('rate')) {
+      interested++;
+    } else {
+      other++;
+    }
   });
 
   const total = rows.length;
@@ -804,6 +810,7 @@ function renderDashboard(rows) {
   document.getElementById('kpi-rate-badge').textContent = febRate > 1.81 ? 'Best pace yet ↑' : 'Current pace';
   document.getElementById('kpi-projected').textContent = marchConservative + '–' + marchOptimistic;
   document.getElementById('header-total').textContent  = `${total} Total Leads`;
+  document.getElementById('kpi-meetings-count').textContent = meetings;
 
   // Funnel opportunities (live from sheet)
   document.getElementById('funnel-opps').textContent = total;
