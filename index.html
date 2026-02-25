@@ -233,15 +233,78 @@
         const SHEET_ID = '1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs';
         const SHEET_NAME = 'Positive Responses';
         
-        // Instantly Stats (pre-loaded)
-        const instantlyStats = {
-            emailsSent: 8909,
-            replies: 56,
-            opportunities: 21
+        // Instantly Stats - loaded from BridgeKit sync
+        let instantlyStats = {
+            emailsSent: 0,
+            replies: 0,
+            opportunities: 0
         };
 
         let chart = null;
         let leadsData = [];
+        
+        // Load Instantly stats from synced JSON
+        async function loadInstantlyStats() {
+            try {
+                const response = await fetch('./data/instantly-stats.json?' + Date.now());
+                const data = await response.json();
+                instantlyStats = {
+                    emailsSent: data.stats.emailsSent || 0,
+                    replies: data.stats.replies || 0,
+                    opportunities: data.stats.opportunities || 0
+                };
+                
+                // Update funnel display
+                document.getElementById('emailsSent').textContent = instantlyStats.emailsSent.toLocaleString();
+                document.getElementById('totalReplies').textContent = instantlyStats.replies;
+                document.getElementById('opportunities').textContent = instantlyStats.opportunities;
+                
+                const replyRate = instantlyStats.emailsSent > 0 
+                    ? ((instantlyStats.replies / instantlyStats.emailsSent) * 100).toFixed(2) 
+                    : 0;
+                document.getElementById('replyRate').textContent = replyRate + '%';
+                document.getElementById('healthReplyRate').textContent = replyRate + '%';
+                
+                const oppRate = instantlyStats.replies > 0 
+                    ? ((instantlyStats.opportunities / instantlyStats.replies) * 100).toFixed(1) 
+                    : 0;
+                document.getElementById('oppRate').textContent = oppRate + '% of replies';
+                document.getElementById('healthOppRate').textContent = oppRate + '%';
+                document.getElementById('replyToOppRate').textContent = oppRate + '%';
+                
+                const emailsPerOpp = instantlyStats.opportunities > 0 
+                    ? Math.round(instantlyStats.emailsSent / instantlyStats.opportunities) 
+                    : '—';
+                document.getElementById('emailsPerOpp').textContent = emailsPerOpp;
+                
+                // Update campaign info if available
+                if (data.campaigns && data.campaigns.length > 0) {
+                    const campaign = data.campaigns[0];
+                    const campaignHtml = `
+                        <div class="bg-white/5 rounded-lg p-4 border-l-4 border-blue-500">
+                            <h3 class="font-medium">${campaign.name}</h3>
+                            <p class="text-sm text-gray-400 mt-1">Launched ${campaign.created_at} · 3-step sequence</p>
+                            <div class="flex gap-2 mt-3">
+                                <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">${campaign.status || 'Active'}</span>
+                                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">${(instantlyStats.emailsSent/1000).toFixed(1)}K sent</span>
+                            </div>
+                        </div>
+                    `;
+                    document.querySelector('.card:has(h2:contains("Active Campaign"))');
+                }
+                
+                // Update sync time
+                if (data.lastUpdated) {
+                    document.getElementById('syncTime').textContent = new Date(data.lastUpdated).toLocaleString() + ' (BridgeKit)';
+                }
+                
+                console.log('✅ Instantly stats loaded via BridgeKit:', instantlyStats);
+            } catch (error) {
+                console.warn('Could not load Instantly stats:', error);
+                // Use fallback values
+                instantlyStats = { emailsSent: 8909, replies: 56, opportunities: 21 };
+            }
+        }
 
         async function loadData() {
             try {
@@ -440,7 +503,11 @@
         }
 
         // Load data on page load
-        loadData();
+        async function init() {
+            await loadInstantlyStats();
+            await loadData();
+        }
+        init();
     </script>
 </body>
 </html>
