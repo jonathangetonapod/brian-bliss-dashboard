@@ -1,563 +1,1166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source1 Parcel — Live Campaign Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Source1 Parcel Brand Colors */
-        .gradient-bg { background: linear-gradient(135deg, #003366 0%, #001a33 100%); }
-        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(0,166,81,0.2); }
-        .stat-card { background: linear-gradient(135deg, rgba(0,166,81,0.15) 0%, rgba(0,166,81,0.05) 100%); }
-        .glow { box-shadow: 0 0 40px rgba(0,166,81,0.2); }
-        .brand-green { color: #00a651; }
-        .brand-blue { color: #003366; }
-        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-        .funnel-arrow { color: rgba(0,166,81,0.5); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Source1 Parcel — Live Campaign Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --card-border: #2a2d4a;
+    --text: #ffffff;
+    --text-muted: #a0a8b8;
+    --accent: #00a651;
+    --accent-glow: rgba(0,166,81,0.15);
+    --green: #00a651;
+    --green-glow: rgba(0,166,81,0.12);
+    --amber: #fbbf24;
+    --amber-glow: rgba(251,191,36,0.12);
+    --red: #f87171;
+    --purple: #a78bfa;
+    --purple-glow: rgba(167,139,250,0.12);
+    --teal: #2dd4bf;
+    --teal-glow: rgba(45,212,191,0.12);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .container { max-width:960px; margin:0 auto; }
+
+  /* ── Source Bar ── */
+  .source-bar {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+  .source-bar label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+  .source-bar input {
+    flex: 1; min-width:200px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-muted);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .source-bar input:focus { border-color:var(--accent); color:var(--text); }
+
+  .btn-refresh {
+    display: flex; align-items:center; gap:7px;
+    background: var(--accent); color:#fff;
+    border:none; border-radius:8px;
+    padding: 9px 18px;
+    font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif;
+    cursor:pointer; transition:background 0.2s,transform 0.1s; white-space:nowrap;
+  }
+  .btn-refresh:hover { background:#3a7bc8; }
+  .btn-refresh:active { transform:scale(0.97); }
+  .btn-refresh:disabled { background:#2a2d4a; color:var(--text-muted); cursor:not-allowed; }
+  .btn-refresh.spinning svg { animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .status-dot.idle    { background:var(--text-muted); }
+  .status-dot.loading { background:var(--amber); animation:pulse 0.8s infinite; }
+  .status-dot.ok      { background:var(--green); }
+  .status-dot.err     { background:var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .status-text { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+
+  /* ── Error Banner ── */
+  .error-banner {
+    display:none;
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius:10px; padding:12px 18px;
+    font-size:13px; color:var(--red); margin-bottom:24px;
+  }
+
+  /* ── Header ── */
+  .header { text-align:center; margin-bottom:40px; }
+  .header-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:12px; }
+  .header h1 { font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:#fff; margin-bottom:8px; }
+  .header-sub { font-size:14px; color:var(--text-muted); margin-bottom:12px; }
+  .header-sub span { color:var(--green); font-weight:600; }
+  .sync-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(46,204,113,0.08); border:1px solid rgba(46,204,113,0.2);
+    border-radius:20px; padding:4px 14px;
+    font-size:11px; color:var(--green); font-weight:600;
+  }
+  .sync-pulse { width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
+
+  /* ── KPI Cards ── */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi {
+    background:var(--card); border:1px solid var(--card-border);
+    border-radius:14px; padding:22px 18px; text-align:center;
+    position:relative; overflow:hidden;
+  }
+  .kpi::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; opacity:0.7; }
+  .kpi.blue::before   { background:linear-gradient(90deg,var(--accent),#7bc3ff); }
+  .kpi.green::before  { background:linear-gradient(90deg,var(--green),#7fffc4); }
+  .kpi.amber::before  { background:linear-gradient(90deg,var(--amber),#ffe066); }
+  .kpi.purple::before { background:linear-gradient(90deg,var(--purple),#c4b5fd); }
+  .kpi.teal::before   { background:linear-gradient(90deg,var(--teal),#99f6e4); }
+  .kpi-value { font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:#fff; line-height:1; margin-bottom:6px; }
+  .kpi-label { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:500; }
+  .kpi-badge { display:inline-block; margin-top:8px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+  .kpi-badge.green  { background:var(--green-glow);  color:var(--green); }
+  .kpi-badge.blue   { background:var(--accent-glow); color:var(--accent); }
+  .kpi-badge.amber  { background:var(--amber-glow);  color:var(--amber); }
+  .kpi-badge.purple { background:var(--purple-glow); color:var(--purple); }
+  .kpi-badge.teal   { background:var(--teal-glow);   color:var(--teal); }
+
+  /* ── Sections ── */
+  .section { background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:32px; margin-bottom:24px; }
+  .section-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:600; color:#fff; margin-bottom:6px; }
+  .section-sub { font-size:13px; color:var(--text-muted); margin-bottom:20px; }
+
+  .chart-container { position:relative; height:280px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+  .two-col .section { margin-bottom:0; }
+  .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+
+  /* ── Funnel ── */
+  .funnel { display:flex; align-items:stretch; gap:2px; height:90px; margin-bottom:20px; }
+  .funnel-step {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    border-radius:10px; padding:10px 8px;
+    position:relative; text-align:center;
+    transition:opacity 0.2s;
+  }
+  .funnel-step:hover { opacity:0.85; }
+  .funnel-step.f1 { background:linear-gradient(135deg,rgba(74,144,217,0.3),rgba(74,144,217,0.15)); border:1px solid rgba(74,144,217,0.3); }
+  .funnel-step.f2 { background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(167,139,250,0.15)); border:1px solid rgba(167,139,250,0.3); }
+  .funnel-step.f3 { background:linear-gradient(135deg,rgba(46,204,113,0.3),rgba(46,204,113,0.15)); border:1px solid rgba(46,204,113,0.3); }
+  .funnel-step.f4 { background:linear-gradient(135deg,rgba(251,191,36,0.3),rgba(251,191,36,0.15)); border:1px solid rgba(251,191,36,0.3); }
+  .funnel-arrow { display:flex; align-items:center; color:var(--card-border); font-size:18px; flex-shrink:0; }
+  .funnel-num { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff; line-height:1; }
+  .funnel-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-top:3px; }
+  .funnel-rate { font-size:11px; font-weight:700; margin-top:4px; }
+  .funnel-rate.blue   { color:var(--accent); }
+  .funnel-rate.purple { color:var(--purple); }
+  .funnel-rate.green  { color:var(--green); }
+  .funnel-rate.amber  { color:var(--amber); }
+
+  .campaign-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .campaign-pill {
+    display:flex; align-items:center; gap:10px;
+    background: rgba(255,255,255,0.04);
+    border:1px solid var(--card-border);
+    border-radius:10px; padding:10px 14px;
+  }
+  .campaign-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
+  .campaign-dot.new { background:var(--amber); animation:pulse 1.5s infinite; }
+  .campaign-name { font-size:12px; color:var(--text); font-weight:500; line-height:1.3; }
+  .campaign-meta { font-size:10px; color:var(--text-muted); margin-top:2px; }
+
+  /* ── Donut ── */
+  .donut-container { position:relative; height:200px; }
+  .donut-legend { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+  .legend-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); }
+  .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .legend-count { margin-left:auto; font-weight:600; color:var(--text); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); font-weight:600; padding:10px 14px; border-bottom:1px solid var(--card-border); }
+  thead th:not(:first-child) { text-align:right; }
+  tbody td { padding:14px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text); }
+  tbody td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr.highlight td { color:#fff; font-weight:600; }
+  .trend-up   { color:var(--green); font-weight:600; font-size:12px; }
+  .trend-down { color:var(--red);   font-weight:600; font-size:12px; }
+  .trend-flat { color:var(--amber); font-weight:600; font-size:12px; }
+
+  /* ── Milestone Cards ── */
+  .milestone-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius:14px; padding:22px 20px;
+    text-align:center; position:relative; overflow:hidden;
+  }
+  .milestone-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; opacity:0.7; }
+  .milestone-card.m300::before { background:linear-gradient(90deg,var(--accent),#7bc3ff); }
+  .milestone-card.m400::before { background:linear-gradient(90deg,var(--green),#7fffc4); }
+  .milestone-card.m500::before { background:linear-gradient(90deg,var(--purple),#c4b5fd); }
+  .milestone-target { font-family:'Playfair Display',serif; font-size:40px; font-weight:700; color:#fff; line-height:1; }
+  .milestone-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-top:4px; }
+  .milestone-date { font-size:20px; font-weight:700; margin-top:12px; }
+  .milestone-sub { font-size:12px; color:var(--text-muted); margin-top:4px; }
+  .milestone-opt { font-size:11px; font-weight:600; margin-top:8px; padding:3px 10px; border-radius:20px; display:inline-block; }
+
+  /* ── Scenario bars ── */
+  .scenario-row { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .scenario-label { font-size:13px; color:var(--text-muted); min-width:200px; flex-shrink:0; }
+  .scenario-bar-bg { flex:1; height:32px; background:rgba(255,255,255,0.04); border-radius:8px; overflow:hidden; }
+  .scenario-bar {
+    height:100%; border-radius:8px;
+    display:flex; align-items:center; justify-content:flex-end;
+    padding-right:12px; font-size:13px; font-weight:700; color:#fff;
+    transition:width 0.9s ease; min-width:50px;
+  }
+  .scenario-bar.blue  { background:linear-gradient(90deg,rgba(74,144,217,0.3),var(--accent)); }
+  .scenario-bar.green { background:linear-gradient(90deg,rgba(46,204,113,0.3),var(--green)); }
+  .scenario-bar.amber { background:linear-gradient(90deg,rgba(251,191,36,0.3),var(--amber)); }
+
+  /* ── Health meters ── */
+  .health-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .health-card {
+    background:rgba(255,255,255,0.03); border:1px solid var(--card-border);
+    border-radius:12px; padding:18px 16px; text-align:center;
+  }
+  .health-val { font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#fff; }
+  .health-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-top:4px; }
+  .health-desc { font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.5; }
+
+  /* ── Proj bar ── */
+  .proj-row { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .proj-label { font-size:13px; color:var(--text-muted); min-width:170px; flex-shrink:0; }
+  .proj-bar-bg { flex:1; height:28px; background:rgba(255,255,255,0.04); border-radius:8px; overflow:hidden; }
+  .proj-bar { height:100%; border-radius:8px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font-size:12px; font-weight:700; color:#fff; transition:width 0.8s ease; min-width:40px; }
+  .proj-bar.blue  { background:linear-gradient(90deg,rgba(74,144,217,0.3),var(--accent)); }
+  .proj-bar.green { background:linear-gradient(90deg,rgba(46,204,113,0.3),var(--green)); }
+
+  /* ── Instantly badge ── */
+  .instantly-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2);
+    border-radius:8px; padding:5px 12px; font-size:11px;
+    color:var(--amber); font-weight:600; margin-bottom:20px;
+  }
+
+  /* ── Footer ── */
+  .footer { text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid var(--card-border); }
+  .footer-text { font-size:12px; color:var(--text-muted); margin-top:8px; }
+
+  /* ── Info Buttons & Modals ── */
+  .info-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; border-radius:50%;
+    background:rgba(160,168,184,0.15); border:1px solid rgba(160,168,184,0.25);
+    color:var(--text-muted); font-size:9px; font-weight:700;
+    cursor:pointer; margin-left:6px; vertical-align:middle;
+    transition:background 0.2s,color 0.2s,border-color 0.2s;
+    font-family:'DM Sans',sans-serif; line-height:1; flex-shrink:0;
+  }
+  .info-btn:hover { background:rgba(74,144,217,0.2); color:var(--accent); border-color:var(--accent); }
+
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(10,12,25,0.88); z-index:1000;
+    align-items:center; justify-content:center; padding:20px;
+    backdrop-filter:blur(6px);
+  }
+  .modal-overlay.open { display:flex; }
+  .modal-box {
+    background:#1c2340; border:1px solid #353d60;
+    border-radius:18px; padding:28px 28px 24px;
+    max-width:500px; width:100%; position:relative;
+    box-shadow:0 28px 70px rgba(0,0,0,0.7);
+    animation:modalIn 0.18s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .modal-close {
+    position:absolute; top:14px; right:16px;
+    background:none; border:none; color:var(--text-muted);
+    font-size:22px; cursor:pointer; line-height:1;
+    font-family:'DM Sans',sans-serif; transition:color 0.2s;
+  }
+  .modal-close:hover { color:#fff; }
+  .modal-source {
+    display:inline-flex; align-items:center; gap:6px;
+    border-radius:8px; padding:4px 12px;
+    font-size:11px; font-weight:600; letter-spacing:0.5px; margin-bottom:14px;
+  }
+  .modal-source.sheets   { background:rgba(46,204,113,0.1);  border:1px solid rgba(46,204,113,0.25);  color:var(--green); }
+  .modal-source.instantly{ background:rgba(251,191,36,0.1);  border:1px solid rgba(251,191,36,0.25);  color:var(--amber); }
+  .modal-source.calc     { background:rgba(74,144,217,0.1);  border:1px solid rgba(74,144,217,0.25);  color:var(--accent); }
+  .modal-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff; margin-bottom:12px; }
+  .modal-body  { font-size:14px; color:var(--text-muted); line-height:1.8; }
+  .modal-body strong { color:#fff; }
+  .modal-body .formula {
+    background:rgba(255,255,255,0.05); border:1px solid var(--card-border);
+    border-radius:8px; padding:10px 14px; font-family:monospace;
+    font-size:12px; color:var(--accent); margin:12px 0; line-height:1.6;
+  }
+
+  @media (max-width:700px) {
+    .kpi-row    { grid-template-columns:repeat(2,1fr); }
+    .kpi-value  { font-size:28px; }
+    .header h1  { font-size:24px; }
+    .section    { padding:20px; }
+    .two-col    { grid-template-columns:1fr; }
+    .three-col  { grid-template-columns:1fr; }
+    .campaign-grid { grid-template-columns:1fr; }
+    .health-grid { grid-template-columns:1fr; }
+    .funnel     { flex-direction:column; height:auto; gap:8px; }
+    .funnel-arrow { display:none; }
+    .scenario-label { min-width:130px; font-size:12px; }
+    .source-bar { flex-direction:column; align-items:stretch; }
+  }
+</style>
 </head>
-<body class="gradient-bg min-h-screen text-white">
-    <!-- Header -->
-    <header class="border-b border-white/10 px-6 py-4 bg-white">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <img src="https://source1parcel.com/wp-content/uploads/2022/02/source1-horizontal-01-1024x363.png" 
-                 alt="Source1 Parcel" class="h-12 w-auto">
-            <div class="flex items-center gap-2 text-xs text-gray-600">
-                <span class="w-2 h-2 bg-green-500 rounded-full pulse-slow"></span>
-                <span class="font-medium">Live Campaign Dashboard</span>
-            </div>
+<body>
+<div class="container">
+
+  <!-- Source Bar -->
+  <div class="source-bar">
+    <label>Sheet URL</label>
+    <input id="sheet-url" type="text" placeholder="Paste your Google Sheets URL here…" />
+    <button class="btn-refresh" id="btn-refresh" onclick="handleRefresh()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh
+    </button>
+    <div class="status-dot idle" id="status-dot"></div>
+    <span class="status-text" id="status-text">Not loaded</span>
+  </div>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <img src="https://source1parcel.com/wp-content/uploads/2022/02/source1-horizontal-01-1024x363.png"
+         alt="Source1 Parcel"
+         style="height:60px;margin-bottom:24px;display:block;margin-left:auto;margin-right:auto;background:white;padding:12px 20px;border-radius:12px;">
+    <div class="header-label">Live Campaign Dashboard</div>
+    <h1>Source1 Parcel — Brian Bliss</h1>
+    <div class="header-sub">July 2025 — Present &nbsp;·&nbsp; <span id="header-total">— Total Leads</span></div>
+    <div class="sync-badge">
+      <span class="sync-pulse"></span>
+      Last synced: <span id="sync-time">—</span>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi blue">
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-label">Total Leads <button class="info-btn" onclick="openModal('kpi-total')">i</button></div>
+      <div class="kpi-badge blue">All campaigns</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-value" id="kpi-rate">—</div>
+      <div class="kpi-label">Leads / Day <button class="info-btn" onclick="openModal('kpi-rate')">i</button></div>
+      <div class="kpi-badge green" id="kpi-rate-badge">Current pace</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-value">12</div>
+      <div class="kpi-label">Meeting Requests <button class="info-btn" onclick="openModal('kpi-meetings')">i</button></div>
+      <div class="kpi-badge amber">High intent</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-value" id="kpi-projected">—</div>
+      <div class="kpi-label">March Forecast <button class="info-btn" onclick="openModal('kpi-forecast')">i</button></div>
+      <div class="kpi-badge purple" id="kpi-projected-badge">At current pace</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       CAMPAIGN FUNNEL + ACTIVE CAMPAIGNS
+  ════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="instantly-badge">
+      ⚡ Instantly data · Synced Feb 24, 2026 via BridgeKit
+    </div>
+    <div class="section-title">Campaign Funnel Performance <button class="info-btn" onclick="openModal('funnel')">i</button></div>
+    <div class="section-sub">116,252 emails sent across 5 active campaigns — full-funnel conversion breakdown</div>
+
+    <div class="funnel">
+      <div class="funnel-step f1">
+        <div class="funnel-num">116,252</div>
+        <div class="funnel-label">Emails Sent</div>
+        <div class="funnel-rate blue">100%</div>
+      </div>
+      <div class="funnel-arrow">›</div>
+      <div class="funnel-step f2">
+        <div class="funnel-num">877</div>
+        <div class="funnel-label">Total Replies</div>
+        <div class="funnel-rate purple">0.75%</div>
+      </div>
+      <div class="funnel-arrow">›</div>
+      <div class="funnel-step f3">
+        <div class="funnel-num" id="funnel-opps">239</div>
+        <div class="funnel-label">Opportunities</div>
+        <div class="funnel-rate green">27.4% of replies</div>
+      </div>
+      <div class="funnel-arrow">›</div>
+      <div class="funnel-step f4">
+        <div class="funnel-num">12</div>
+        <div class="funnel-label">Meetings</div>
+        <div class="funnel-rate amber">5% of opps</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;margin-bottom:28px;">
+      <div style="font-size:12px;color:var(--text-muted);">📧 <strong style="color:var(--text);">484 emails</strong> per opportunity</div>
+      <div style="font-size:12px;color:var(--text-muted);">📅 <strong style="color:var(--text);">1 meeting</strong> every ~20 leads</div>
+      <div style="font-size:12px;color:var(--text-muted);">📈 <strong style="color:var(--green);">Reply → Opp rate: 27.4%</strong> — strong qualifier</div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Active Campaigns</div>
+    <div class="campaign-grid">
+      <div class="campaign-pill" style="grid-column: span 2;">
+        <div class="campaign-dot"></div>
+        <div>
+          <div class="campaign-name">Shipping Rate Negotiation</div>
+          <div class="campaign-meta">Launched Dec 2, 2025 · 3-step · 6 variants</div>
+          <div class="campaign-meta" style="margin-top:6px;color:var(--text-muted);">
+            <strong>Step 1:</strong> Initial outreach (4 variants) · 
+            <strong>Step 2:</strong> Quick follow-up · 
+            <strong>Step 3:</strong> Final value pitch
+          </div>
         </div>
-    </header>
+      </div>
+    </div>
+  </div>
 
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Top Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="stat-card rounded-xl p-5 glow">
-                <p class="text-gray-400 text-sm mb-1">Total Leads</p>
-                <p class="text-3xl font-bold" id="totalLeads">—</p>
-                <p class="text-xs text-gray-500 mt-1">All campaigns</p>
-            </div>
-            <div class="stat-card rounded-xl p-5">
-                <p class="text-gray-400 text-sm mb-1">Leads / Day</p>
-                <p class="text-3xl font-bold" id="leadsPerDay">—</p>
-                <p class="text-xs text-gray-500 mt-1">Current pace</p>
-            </div>
-            <div class="stat-card rounded-xl p-5">
-                <p class="text-gray-400 text-sm mb-1">Meeting Requests</p>
-                <p class="text-3xl font-bold brand-green" id="meetingRequests">—</p>
-                <p class="text-xs text-gray-500 mt-1">High intent</p>
-            </div>
-            <div class="stat-card rounded-xl p-5">
-                <p class="text-gray-400 text-sm mb-1">March Forecast</p>
-                <p class="text-3xl font-bold text-blue-400" id="marchForecast">—</p>
-                <p class="text-xs text-gray-500 mt-1">At current pace</p>
-            </div>
+  <!-- Lead Trend -->
+  <div class="section">
+    <div class="section-title">Lead Trend <button class="info-btn" onclick="openModal('trend')">i</button></div>
+    <div class="section-sub">Monthly leads vs. daily pace — showing campaign momentum over time</div>
+    <div class="chart-container">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Monthly Breakdown + Lead Types -->
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">Monthly Breakdown <button class="info-btn" onclick="openModal('breakdown')">i</button></div>
+      <div class="section-sub">Leads and daily pace by month</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Leads</th><th>/Day</th><th>vs Prev</th></tr></thead>
+          <tbody id="monthly-tbody">
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Hit Refresh to load</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted);" id="feb-note">* Current month</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Lead Types <button class="info-btn" onclick="openModal('types')">i</button></div>
+      <div class="section-sub">How leads are responding to outreach</div>
+      <div class="donut-container">
+        <canvas id="typeChart"></canvas>
+      </div>
+      <div class="donut-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4a90d9;"></div>Interested / More Info<span class="legend-count" id="legend-interested">—</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a0a8b8;"></div>Other<span class="legend-count" id="legend-other">—</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>Forwarded Internally<span class="legend-count" id="legend-forwarded">—</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div>Meeting Request<span class="legend-count" id="legend-meetings">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PREDICTIVE: MARCH FORECAST
+  ════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">March 2026 Forecast <button class="info-btn" onclick="openModal('march')">i</button></div>
+    <div class="section-sub" id="march-sub">If current pace holds, here's what March looks like across 3 scenarios</div>
+
+    <div id="march-scenarios" style="margin-bottom:24px;">
+      <div class="scenario-row">
+        <div class="scenario-label" style="color:var(--text-muted);">Conservative (current pace)</div>
+        <div class="scenario-bar-bg">
+          <div class="scenario-bar blue" id="bar-conservative" style="width:0%;">—</div>
         </div>
-
-        <!-- Sync Info -->
-        <p class="text-center text-xs text-gray-500 mb-8">
-            ⚡ Instantly data · Synced <span id="syncTime">—</span> via BridgeKit
-        </p>
-
-        <!-- Campaign Funnel Performance -->
-        <div class="card rounded-xl p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-2">Campaign Funnel Performance</h2>
-            <p class="text-sm text-gray-400 mb-6" id="funnelSubtitle">Loading...</p>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="text-center p-4 bg-white/5 rounded-lg">
-                    <p class="text-2xl font-bold text-blue-400" id="emailsSent">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Emails Sent</p>
-                    <p class="text-xs text-gray-500">100%</p>
-                </div>
-                <div class="text-center p-4 bg-white/5 rounded-lg relative">
-                    <div class="absolute left-0 top-1/2 -translate-x-1/2 funnel-arrow text-xl">›</div>
-                    <p class="text-2xl font-bold text-purple-400" id="totalReplies">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Total Replies</p>
-                    <p class="text-xs text-gray-500" id="replyRate">—</p>
-                </div>
-                <div class="text-center p-4 bg-white/5 rounded-lg relative">
-                    <div class="absolute left-0 top-1/2 -translate-x-1/2 funnel-arrow text-xl">›</div>
-                    <p class="text-2xl font-bold text-yellow-400" id="opportunities">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Opportunities</p>
-                    <p class="text-xs text-gray-500" id="oppRate">—</p>
-                </div>
-                <div class="text-center p-4 bg-white/5 rounded-lg relative">
-                    <div class="absolute left-0 top-1/2 -translate-x-1/2 funnel-arrow text-xl">›</div>
-                    <p class="text-2xl font-bold brand-green" id="meetings">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Meetings</p>
-                    <p class="text-xs text-gray-500" id="meetingRate">—</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
-                <p>📧 <span id="emailsPerOpp">—</span> emails per opportunity</p>
-                <p>📅 1 meeting every ~<span id="leadsPerMeeting">—</span> leads</p>
-                <p>📈 Reply → Opp rate: <span id="replyToOppRate">—</span> — strong qualifier</p>
-            </div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-label" style="color:var(--green);font-weight:600;">Baseline (Jan–Feb avg)</div>
+        <div class="scenario-bar-bg">
+          <div class="scenario-bar green" id="bar-baseline" style="width:0%;">—</div>
         </div>
-
-        <!-- Active Campaigns -->
-        <div class="card rounded-xl p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-4">Active Campaigns</h2>
-            <div class="space-y-4" id="campaignsList">
-                <div class="bg-white/5 rounded-lg p-4 border-l-4" style="border-color: #00a651;">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-medium">Shipping Rate Negotiation</h3>
-                            <p class="text-sm text-gray-400 mt-1">Launched Dec 2, 2025 · 3-step · 6 variants</p>
-                        </div>
-                        <span class="px-2 py-1 text-xs rounded" style="background-color: rgba(0,166,81,0.2); color: #00a651;">Active</span>
-                    </div>
-                    <div class="mt-3 text-xs text-gray-500">
-                        <p><strong>Step 1:</strong> Initial outreach (4 variants) - "parcel savings", "shipping savings", "Shipping rates?", "Fedex v Ups"</p>
-                        <p><strong>Step 2:</strong> Follow-up (1 variant) - Quick check-in</p>
-                        <p><strong>Step 3:</strong> Final email (1 variant) - Rate negotiation tips + last chance</p>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-label" style="color:var(--amber);font-weight:600;">Optimistic (new campaign ramps)</div>
+        <div class="scenario-bar-bg">
+          <div class="scenario-bar amber" id="bar-optimistic" style="width:0%;">—</div>
         </div>
+      </div>
+    </div>
 
-        <!-- Two Column: Lead Trend + Monthly Breakdown -->
-        <div class="grid md:grid-cols-2 gap-8 mb-8">
-            <!-- Lead Trend Chart -->
-            <div class="card rounded-xl p-6">
-                <h2 class="text-lg font-semibold mb-2">Lead Trend</h2>
-                <p class="text-sm text-gray-400 mb-4">Monthly leads showing campaign momentum</p>
-                <div class="h-64">
-                    <canvas id="trendChart"></canvas>
-                </div>
-            </div>
+    <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:14px 18px;font-size:13px;line-height:1.7;">
+      <strong style="color:var(--amber);">✦ Custom Search Query campaign effect</strong><br>
+      <span style="color:var(--text-muted);" id="new-campaign-note">Launched Feb 20, this campaign is only days old and hasn't fully contributed to the lead count yet. As it ramps up through March, it has the potential to push leads well above the baseline — making the optimistic scenario the most likely if engagement holds.</span>
+    </div>
+  </div>
 
-            <!-- Monthly Breakdown -->
-            <div class="card rounded-xl p-6">
-                <h2 class="text-lg font-semibold mb-2">Monthly Breakdown</h2>
-                <p class="text-sm text-gray-400 mb-4">Leads and daily pace by month</p>
-                <div class="overflow-y-auto max-h-64">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="text-left text-gray-400 border-b border-white/10">
-                                <th class="pb-2">Month</th>
-                                <th class="pb-2">Leads</th>
-                                <th class="pb-2">/Day</th>
-                                <th class="pb-2">vs Prev</th>
-                            </tr>
-                        </thead>
-                        <tbody id="monthlyTable">
-                            <tr><td colspan="4" class="py-4 text-gray-500">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">* Current month</p>
-            </div>
+  <!-- ═══════════════════════════════════════════
+       PREDICTIVE: MILESTONE TRACKER
+  ════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">Lead Milestones <button class="info-btn" onclick="openModal('milestones')">i</button></div>
+    <div class="section-sub" id="milestone-sub">At current pace — when will we hit the next targets?</div>
+
+    <div class="three-col" id="milestone-cards">
+      <!-- Filled dynamically -->
+    </div>
+
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;" id="milestone-note">* Optimistic dates assume new campaign ramps to ~2.5 leads/day in March</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PIPELINE HEALTH
+  ════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="instantly-badge">
+      ⚡ Instantly data · Synced Feb 24, 2026 via BridgeKit
+    </div>
+    <div class="section-title">Pipeline Health <button class="info-btn" onclick="openModal('pipeline')">i</button></div>
+    <div class="section-sub">Key conversion metrics across the full outreach funnel</div>
+
+    <div class="health-grid">
+      <div class="health-card">
+        <div class="health-val" style="color:var(--purple);">0.75%</div>
+        <div class="health-label">Reply Rate <button class="info-btn" onclick="openModal('reply-rate')">i</button></div>
+        <div class="health-desc">877 replies from 116,252 emails sent. Industry benchmark: 0.5–1%</div>
+      </div>
+      <div class="health-card">
+        <div class="health-val" style="color:var(--green);">27.4%</div>
+        <div class="health-label">Reply → Opportunity <button class="info-btn" onclick="openModal('reply-opp')">i</button></div>
+        <div class="health-desc">Nearly 1 in 3 replies becomes a qualified opportunity — strong signal quality</div>
+      </div>
+      <div class="health-card">
+        <div class="health-val" style="color:var(--amber);">5.0%</div>
+        <div class="health-label">Opp → Meeting <button class="info-btn" onclick="openModal('opp-meeting')">i</button></div>
+        <div class="health-desc">12 meeting requests from 239 opportunities. Every 20 leads generates a meeting</div>
+      </div>
+      <div class="health-card">
+        <div class="health-val" id="health-next-meeting" style="color:var(--accent);">—</div>
+        <div class="health-label">Leads to Next Meeting <button class="info-btn" onclick="openModal('next-meeting')">i</button></div>
+        <div class="health-desc">Estimated leads needed until the next meeting request at 5% conversion rate</div>
+      </div>
+      <div class="health-card">
+        <div class="health-val" style="color:var(--teal);">484</div>
+        <div class="health-label">Emails / Opportunity <button class="info-btn" onclick="openModal('emails-opp')">i</button></div>
+        <div class="health-desc">Cost to generate 1 qualified lead. Use this to plan list size for target outcomes</div>
+      </div>
+      <div class="health-card">
+        <div class="health-val" id="health-meetings-march" style="color:var(--green);">—</div>
+        <div class="health-label">Projected March Meetings <button class="info-btn" onclick="openModal('march-meetings')">i</button></div>
+        <div class="health-desc">Estimated new meeting requests in March based on forecasted leads × 5%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- February Projection -->
+  <div class="section">
+    <div class="section-title" id="proj-title">February Projection</div>
+    <div class="section-sub">How February is tracking vs January</div>
+    <div style="margin-bottom:20px;">
+      <div class="proj-row">
+        <div class="proj-label">January (actual)</div>
+        <div class="proj-bar-bg"><div class="proj-bar blue" id="proj-jan-bar" style="width:0%;">—</div></div>
+      </div>
+      <div class="proj-row">
+        <div class="proj-label">Feb — so far</div>
+        <div class="proj-bar-bg"><div class="proj-bar blue" id="proj-sofar-bar" style="width:0%;">—</div></div>
+      </div>
+      <div class="proj-row">
+        <div class="proj-label" style="color:var(--green);font-weight:600;">Feb — at current pace</div>
+        <div class="proj-bar-bg"><div class="proj-bar green" id="proj-pace-bar" style="width:0%;">—</div></div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);" id="proj-note">—</div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleModalClick(event)">
+    <div class="modal-box" id="modal-box">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <div id="modal-source-tag" class="modal-source"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <img src="https://images.squarespace-cdn.com/content/v1/658518476ae2bb7cbb022dd8/5921253f-9867-4a80-af42-766a71729436/BLUE+TREE+MARKETING+Logo_white_transparent+background.png?format=1500w"
+         alt="Source1 Parcel"
+         style="height:36px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;opacity:0.85;">
+    <div class="footer-text" id="footer-sync">Google Sheets data: live · Instantly data: synced Feb 24, 2026 via BridgeKit</div>
+  </div>
+
+</div>
+<script>
+// ─────────────────────────────────────────────────────────
+//  Config & Constants
+// ─────────────────────────────────────────────────────────
+const DEFAULT_URL = 'https://docs.google.com/spreadsheets/d/1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs/edit?gid=0#gid=0';
+const LS_KEY = 'btm_sheet_url';
+
+const MONTH_ORDER  = ['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero'];
+const MONTH_LABELS = { Agosto:'Aug', Septiembre:'Sep', Octubre:'Oct', Noviembre:'Nov', Diciembre:'Dec', Enero:'Jan', Febrero:'Feb' };
+const MONTH_DAYS   = { Agosto:31, Septiembre:30, Octubre:31, Noviembre:30, Diciembre:31, Enero:31, Febrero:28 };
+
+// Instantly data — BridgeKit pull Feb 24, 2026
+const INSTANTLY = {
+  emailsSent: 116252,
+  replies: 877,
+  opportunities: 239,
+  meetings: 12,
+  campaigns: 5
+};
+
+let trendChart = null, typeChart = null;
+
+// ─────────────────────────────────────────────────────────
+//  Init
+// ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  const saved = localStorage.getItem(LS_KEY) || DEFAULT_URL;
+  document.getElementById('sheet-url').value = saved;
+  fetchAndRender(saved);
+});
+
+// ─────────────────────────────────────────────────────────
+//  UI
+// ─────────────────────────────────────────────────────────
+function setStatus(state, msg) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  const btn = document.getElementById('btn-refresh');
+  const err = document.getElementById('error-banner');
+  dot.className = 'status-dot ' + state;
+  err.style.display = 'none';
+  if (state === 'loading') {
+    txt.textContent = 'Fetching data…'; btn.disabled = true; btn.classList.add('spinning');
+  } else if (state === 'ok') {
+    txt.textContent = msg || 'Up to date'; btn.disabled = false; btn.classList.remove('spinning');
+  } else if (state === 'err') {
+    txt.textContent = 'Failed'; btn.disabled = false; btn.classList.remove('spinning');
+    err.style.display = 'block';
+    err.innerHTML = `<strong>Could not load data:</strong> ${msg}<br><br>Make sure the sheet is set to <strong>Share → Anyone with the link → Viewer</strong>.`;
+  } else {
+    txt.textContent = 'Not loaded'; btn.disabled = false; btn.classList.remove('spinning');
+  }
+}
+
+function handleRefresh() {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (url) fetchAndRender(url);
+}
+
+// ─────────────────────────────────────────────────────────
+//  Fetch
+// ─────────────────────────────────────────────────────────
+async function fetchAndRender(url) {
+  setStatus('loading');
+  try {
+    const { id, gid } = parseSheetUrl(url);
+    if (!id) throw new Error('Could not find a spreadsheet ID in that URL.');
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}&t=${Date.now()}`;
+    const resp = await fetch(csvUrl, { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const rows = parseCSV(await resp.text());
+    renderDashboard(rows);
+    localStorage.setItem(LS_KEY, url);
+    setStatus('ok', 'Up to date');
+  } catch (e) {
+    setStatus('err', e.message);
+  }
+}
+
+function parseSheetUrl(url) {
+  const idM = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const gidM = url.match(/[#?&]gid=(\d+)/);
+  return { id: idM ? idM[1] : null, gid: gidM ? gidM[1] : '0' };
+}
+
+function parseCSV(csv) {
+  const lines = csv.split('\n');
+  if (lines.length < 2) return [];
+  const headers = splitLine(lines[0]);
+  return lines.slice(1).filter(l => l.trim()).map(l => {
+    const vals = splitLine(l);
+    return headers.reduce((o, h, i) => ({ ...o, [h.trim()]: (vals[i] || '').trim() }), {});
+  }).filter(r => r['Month'] && r['Month'].length > 0);
+}
+
+function splitLine(line) {
+  const out = []; let cur = ''; let q = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { q = !q; }
+    else if (c === ',' && !q) { out.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  out.push(cur);
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────
+//  Render
+// ─────────────────────────────────────────────────────────
+function renderDashboard(rows) {
+  // Count by month
+  const byMonth = {};
+  MONTH_ORDER.forEach(m => byMonth[m] = 0);
+  let meetings = 0, forwarded = 0, interested = 0, other = 0;
+
+  rows.forEach(row => {
+    const m = row['Month'];
+    if (m in byMonth) byMonth[m]++;
+    const t = row['Response Type'] || '';
+    if      (t === 'Meeting Request')                   meetings++;
+    else if (t === 'Forwarded Internally')              forwarded++;
+    else if (t === 'Interested / Requesting More Info') interested++;
+    else                                                other++;
+  });
+
+  const total = rows.length;
+
+  // Feb elapsed days from latest date
+  const febRows = rows.filter(r => r['Month'] === 'Febrero');
+  let febDays = 28;
+  if (febRows.length > 0) {
+    const valid = febRows.map(r => r['Response Date']).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(d => new Date(d));
+    if (valid.length > 0) febDays = new Date(Math.max(...valid)).getDate();
+  }
+
+  const febCount  = byMonth['Febrero'];
+  const janCount  = byMonth['Enero'];
+  const febRate   = +(febCount / febDays).toFixed(2);
+  const daysLeft  = 28 - febDays;
+  const febProj   = Math.round(febCount + febRate * daysLeft);
+
+  // March scenarios
+  const marchConservative = Math.round(febRate * 31);
+  const marchBaseline     = Math.round((janCount + febProj) / 2);
+  const marchOptimistic   = Math.round(marchConservative * 1.35); // ~35% boost from new campaign
+
+  // ── KPIs ──
+  document.getElementById('kpi-total').textContent     = total;
+  document.getElementById('kpi-rate').textContent      = febRate.toFixed(2);
+  document.getElementById('kpi-rate-badge').textContent = febRate > 1.81 ? 'Best pace yet ↑' : 'Current pace';
+  document.getElementById('kpi-projected').textContent = marchConservative + '–' + marchOptimistic;
+  document.getElementById('header-total').textContent  = `${total} Total Leads`;
+
+  // Funnel opportunities (live from sheet)
+  document.getElementById('funnel-opps').textContent = total;
+
+  // ── Sync time ──
+  const now = new Date();
+  const fmtDate = d => d.toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('sync-time').textContent = fmtDate(now);
+  document.getElementById('footer-sync').textContent = `Google Sheets: live · Instantly: synced Feb 24, 2026 via BridgeKit · ${total} total leads`;
+
+  // ── Monthly table ──
+  const tbody = document.getElementById('monthly-tbody');
+  tbody.innerHTML = '';
+  let prev = null;
+  MONTH_ORDER.forEach(m => {
+    const count  = byMonth[m];
+    const days   = m === 'Febrero' ? febDays : MONTH_DAYS[m];
+    const rate   = (count / days).toFixed(2);
+    const isCurr = m === 'Febrero';
+    const isRecent = m === 'Enero' || m === 'Febrero';
+    const label  = MONTH_LABELS[m] + (isCurr ? ' *' : '');
+    let trendHtml = '<span style="color:var(--text-muted)">—</span>';
+    if (prev !== null && prev > 0) {
+      const pct = Math.round((count - prev) / prev * 100);
+      if (count > prev)      trendHtml = `<span class="trend-up">+${pct}%</span>`;
+      else if (count < prev) trendHtml = `<span class="trend-down">${pct}%</span>`;
+      else                   trendHtml = `<span class="trend-flat">0%</span>`;
+    }
+    prev = count;
+    tbody.innerHTML += `<tr${isRecent?' class="highlight"':''}>
+      <td>${label}</td><td>${count}</td><td>${rate}</td><td>${trendHtml}</td></tr>`;
+  });
+
+  if (daysLeft > 0) {
+    tbody.innerHTML += `<tr style="background:rgba(46,204,113,0.06);">
+      <td style="color:var(--green);font-style:italic;">Feb projected</td>
+      <td style="color:var(--green);font-style:italic;">${febProj}</td>
+      <td style="color:var(--green);font-style:italic;">${febRate.toFixed(2)}+</td>
+      <td style="color:var(--green);font-style:italic;">—</td></tr>`;
+  }
+
+  document.getElementById('feb-note').textContent =
+    daysLeft > 0 ? `* Through day ${febDays} of 28 · ${daysLeft} days remaining` : '* Full month complete';
+
+  // ── March Forecast bars ──
+  const marchMax = marchOptimistic * 1.1;
+  const pct = v => Math.min(97, Math.round(v / marchMax * 100));
+  document.getElementById('march-sub').textContent =
+    `At ${febRate.toFixed(2)} leads/day — here's what March looks like across 3 scenarios`;
+  document.getElementById('bar-conservative').style.width = pct(marchConservative) + '%';
+  document.getElementById('bar-conservative').textContent = marchConservative + ' leads';
+  document.getElementById('bar-baseline').style.width     = pct(marchBaseline) + '%';
+  document.getElementById('bar-baseline').textContent     = marchBaseline + ' leads';
+  document.getElementById('bar-optimistic').style.width   = '97%';
+  document.getElementById('bar-optimistic').textContent   = marchOptimistic + '+ leads';
+
+  // ── Milestone Tracker ──
+  const today = new Date();
+  const milestones = [300, 400, 500];
+  const colors = ['m300','m400','m500'];
+  const accentColors = ['var(--accent)','var(--green)','var(--purple)'];
+  const optPace = 2.5; // optimistic pace with new campaign
+
+  document.getElementById('milestone-sub').textContent =
+    `Starting from ${total} leads — at ${febRate.toFixed(2)} leads/day current pace`;
+
+  const cards = document.getElementById('milestone-cards');
+  cards.innerHTML = '';
+
+  milestones.forEach((target, i) => {
+    if (target <= total) return;
+    const daysNormal   = Math.ceil((target - total) / febRate);
+    const daysOpt      = Math.ceil((target - total) / optPace);
+    const dateNormal   = new Date(today); dateNormal.setDate(today.getDate() + daysNormal);
+    const dateOpt      = new Date(today); dateOpt.setDate(today.getDate() + daysOpt);
+    const fmtShort     = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const fmtFull      = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    const diff = daysNormal - daysOpt;
+
+    cards.innerHTML += `
+      <div class="milestone-card ${colors[i]}">
+        <div class="milestone-label">Leads Target</div>
+        <div class="milestone-target" style="color:${accentColors[i]}">${target}</div>
+        <div class="milestone-date" style="color:${accentColors[i]}">${fmtShort(dateNormal)}</div>
+        <div class="milestone-sub">${fmtFull(dateNormal)} · in ${daysNormal} days</div>
+        <div class="milestone-opt" style="background:rgba(251,191,36,0.1);color:var(--amber);">
+          ✦ Optimistic: ${fmtShort(dateOpt)} (${diff} days sooner)
         </div>
+      </div>`;
+  });
 
-        <!-- Two Column: Lead Types + Industry -->
-        <div class="grid md:grid-cols-2 gap-8 mb-8">
-            <!-- Lead Types -->
-            <div class="card rounded-xl p-6">
-                <h2 class="text-lg font-semibold mb-2">Lead Types</h2>
-                <p class="text-sm text-gray-400 mb-4">How leads are responding to outreach</p>
-                <div class="h-48 mb-4">
-                    <canvas id="leadTypesChart"></canvas>
-                </div>
-                <div class="space-y-2 text-sm" id="leadTypes">
-                    <div class="flex justify-between"><span>Loading...</span><span>—</span></div>
-                </div>
-            </div>
+  // ── Pipeline Health calcs ──
+  const leadsPerMeeting = Math.round(INSTANTLY.opportunities / INSTANTLY.meetings);
+  const leadsUntilNextMeeting = leadsPerMeeting - (total % leadsPerMeeting);
+  const marchMeetings = Math.round(marchConservative * 0.05);
+  document.getElementById('health-next-meeting').textContent = '~' + leadsUntilNextMeeting;
+  document.getElementById('health-meetings-march').textContent = '~' + marchMeetings;
 
-            <!-- Industry Breakdown -->
-            <div class="card rounded-xl p-6">
-                <h2 class="text-lg font-semibold mb-2">Industry Breakdown</h2>
-                <p class="text-sm text-gray-400 mb-4">Top industries from leads</p>
-                <div class="h-64">
-                    <canvas id="industryChart"></canvas>
-                </div>
-            </div>
-        </div>
+  // ── Feb Projection bars ──
+  const maxBar = Math.max(janCount, febProj, 70);
+  const bpct = v => Math.min(97, Math.round(v / maxBar * 100));
+  document.getElementById('proj-title').textContent =
+    `February Projection (${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining)`;
+  document.getElementById('proj-jan-bar').style.width   = bpct(janCount) + '%';
+  document.getElementById('proj-jan-bar').textContent   = janCount;
+  document.getElementById('proj-sofar-bar').style.width = bpct(febCount) + '%';
+  document.getElementById('proj-sofar-bar').textContent = febCount;
+  document.getElementById('proj-pace-bar').style.width  = bpct(febProj) + '%';
+  document.getElementById('proj-pace-bar').textContent  = `~${febProj}`;
+  document.getElementById('proj-note').textContent =
+    `At ${febRate.toFixed(2)} leads/day × ${daysLeft} remaining days = ~${Math.round(febRate * daysLeft)} more · Projected total: ${febProj}`;
 
-        <!-- March Forecast -->
-        <div class="card rounded-xl p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-2">March 2026 Forecast</h2>
-            <p class="text-sm text-gray-400 mb-6">If current pace holds, here's what March looks like across 3 scenarios</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center p-4 bg-white/5 rounded-lg">
-                    <p class="text-sm text-gray-400 mb-2">Conservative (current pace)</p>
-                    <p class="text-3xl font-bold" id="forecastConservative">—</p>
-                </div>
-                <div class="text-center p-4 bg-white/5 rounded-lg border-2" style="border-color: #00a651;">
-                    <p class="text-sm text-gray-400 mb-2">Baseline (avg pace)</p>
-                    <p class="text-3xl font-bold brand-green" id="forecastBaseline">—</p>
-                </div>
-                <div class="text-center p-4 bg-white/5 rounded-lg">
-                    <p class="text-sm text-gray-400 mb-2">Optimistic (+20%)</p>
-                    <p class="text-3xl font-bold text-blue-400" id="forecastOptimistic">—</p>
-                </div>
-            </div>
-        </div>
+  // ── Charts ──
+  const chartCounts = MONTH_ORDER.map(m => byMonth[m]);
+  const chartRates  = MONTH_ORDER.map(m => {
+    const d = m === 'Febrero' ? febDays : MONTH_DAYS[m];
+    return +(byMonth[m] / d * 25).toFixed(2);
+  });
+  const chartLabels = MONTH_ORDER.map(m => MONTH_LABELS[m] + (m === 'Febrero' ? ' *' : ''));
 
-        <!-- Pipeline Health -->
-        <div class="card rounded-xl p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-2">Pipeline Health</h2>
-            <p class="text-sm text-gray-400 mb-6">Key conversion metrics across the full outreach funnel</p>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-blue-400" id="healthReplyRate">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Reply Rate</p>
-                    <p class="text-xs text-gray-500">Benchmark: 0.5-1%</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold brand-green" id="healthOppRate">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Reply → Opp</p>
-                    <p class="text-xs text-gray-500">Signal quality</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-yellow-400" id="healthMeetingRate">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Opp → Meeting</p>
-                    <p class="text-xs text-gray-500">Conversion</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-purple-400" id="healthEmailsPerOpp">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Emails/Opp</p>
-                    <p class="text-xs text-gray-500">Cost per lead</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-pink-400" id="healthLeadsToMeeting">—</p>
-                    <p class="text-xs text-gray-400 mt-1">Leads to Meeting</p>
-                    <p class="text-xs text-gray-500">Est. next meeting</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-cyan-400" id="healthMarchMeetings">—</p>
-                    <p class="text-xs text-gray-400 mt-1">March Meetings</p>
-                    <p class="text-xs text-gray-500">Projected</p>
-                </div>
-            </div>
-        </div>
+  trendChart.data.labels             = chartLabels;
+  trendChart.data.datasets[0].data   = chartCounts;
+  trendChart.data.datasets[1].data   = chartRates;
+  trendChart.update();
 
-        <!-- Recent Leads Table -->
-        <div class="card rounded-xl p-6">
-            <h2 class="text-lg font-semibold mb-4">Recent Leads</h2>
-            <p class="text-sm text-gray-400 mb-4">Latest positive responses from outreach</p>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-gray-400 border-b border-white/10">
-                            <th class="pb-3">Date</th>
-                            <th class="pb-3">Contact</th>
-                            <th class="pb-3">Company</th>
-                            <th class="pb-3">Industry</th>
-                            <th class="pb-3">Response Type</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recentLeads">
-                        <tr><td colspan="5" class="py-4 text-gray-500">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+  typeChart.data.datasets[0].data = [interested, other, forwarded, meetings];
+  typeChart.update();
 
-    <!-- Footer -->
-    <footer class="border-t border-white/10 px-6 py-4 mt-12">
-        <p class="text-center text-xs text-gray-500">
-            ⚡ Powered by Lead Gen Jay · Data synced via BridgeKit + Instantly
-        </p>
-    </footer>
+  document.getElementById('legend-interested').textContent = interested;
+  document.getElementById('legend-other').textContent      = other;
+  document.getElementById('legend-forwarded').textContent  = forwarded;
+  document.getElementById('legend-meetings').textContent   = meetings;
+}
 
-    <script>
-        const SHEET_ID = '1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs';
-        const SHEET_NAME = 'Positive Responses';
-        
-        let instantlyStats = { emailsSent: 0, replies: 0, opportunities: 0 };
-        let chart = null, leadTypesChart = null, industryChart = null;
-        let leadsData = [];
+// ─────────────────────────────────────────────────────────
+//  Modal System
+// ─────────────────────────────────────────────────────────
+const MODALS = {
+  'kpi-total': {
+    title: 'Total Leads',
+    source: 'sheets', sourceLabel: 'Live · Google Sheets',
+    body: `<strong>What it is:</strong> The total number of positive lead records logged across all months — from August 2025 through today.<br><br>
+<strong>Where it comes from:</strong> Every row in the connected Google Sheet represents one lead response. The dashboard counts all rows in real time each time you hit Refresh.<br><br>
+<div class="formula">Total Leads = COUNT(all rows in sheet)</div>
+<strong>Why it matters:</strong> This is Brian's primary output metric — the raw number of decision-makers who have positively engaged with the outreach campaigns.`
+  },
+  'kpi-rate': {
+    title: 'Leads / Day',
+    source: 'sheets', sourceLabel: 'Live · Google Sheets',
+    body: `<strong>What it is:</strong> How many leads are coming in per day during the current month (February).<br><br>
+<strong>How it's calculated:</strong> The dashboard finds the latest response date in February, counts how many days have passed (e.g. through Feb 24), and divides February's lead count by that number.<br><br>
+<div class="formula">Leads/Day = Feb Lead Count ÷ Days Elapsed in Feb</div>
+<strong>Why it matters:</strong> A rising daily pace is the strongest signal that campaigns are gaining traction. This rate directly drives all forecast calculations.`
+  },
+  'kpi-meetings': {
+    title: 'Meeting Requests',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> The number of replies that explicitly requested a meeting or call with Brian.<br><br>
+<strong>Where it comes from:</strong> Pulled directly from Instantly via BridgeKit on Feb 24, 2026. Instantly tags each reply that its AI classifies as a meeting request.<br><br>
+<strong>Current count:</strong> <strong>12 meetings</strong> from 239 qualified opportunities — a 5% conversion rate from opportunity to meeting.<br><br>
+<strong>Why it matters:</strong> Meeting requests are the highest-intent signal in the funnel. Each one represents a warm prospect ready for a sales conversation.`
+  },
+  'kpi-forecast': {
+    title: 'March Forecast',
+    source: 'calc', sourceLabel: 'Calculated from live + Instantly data',
+    body: `<strong>What it is:</strong> A projected range for how many leads Brian will generate in March 2026.<br><br>
+<strong>How it's calculated:</strong><br>
+<div class="formula">Conservative = Leads/Day × 31 days
+Optimistic   = Conservative × 1.35</div>
+The 35% optimistic boost accounts for the new <strong>Custom Search Query</strong> campaign launched Feb 20 — it's only a few days old and hasn't reached full volume yet. As it ramps through March, it should meaningfully lift the daily pace.<br><br>
+<strong>Why it matters:</strong> This gives Brian and the client a data-backed range to set expectations for the month ahead.`
+  },
+  'funnel': {
+    title: 'Campaign Funnel',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> A full-funnel view from cold email sends down to meeting requests.<br><br>
+<strong>Where it comes from:</strong> All four funnel metrics were pulled from Instantly via BridgeKit on Feb 24, 2026:<br>
+<div class="formula">Emails Sent:  116,252
+Total Replies:    877  (0.75% reply rate)
+Opportunities:    239  (27.4% of replies)
+Meetings:          12  (5.0% of opportunities)</div>
+<strong>How Instantly defines these:</strong><br>
+• <strong>Replies</strong> = any reply received to a campaign email<br>
+• <strong>Opportunities</strong> = replies that Instantly's AI classifies as positive/qualified<br>
+• <strong>Meetings</strong> = replies explicitly requesting a call or meeting<br><br>
+<strong>Why it matters:</strong> This funnel shows the full efficiency of the outreach system — from list quality to message resonance to deal potential.`
+  },
+  'trend': {
+    title: 'Lead Trend Chart',
+    source: 'sheets', sourceLabel: 'Live · Google Sheets',
+    body: `<strong>What it is:</strong> A dual-line chart showing monthly lead volume (blue bars) and the daily pace (green dashed line) side by side.<br><br>
+<strong>Where it comes from:</strong> Every data point is computed live from the Google Sheet each time you refresh.<br><br>
+<div class="formula">Monthly Count  = COUNT(rows where Month = X)
+Leads/Day (×25) = (Count ÷ Days in Month) × 25</div>
+The ×25 multiplier scales the daily rate to be visually comparable to monthly totals on the same axis.<br><br>
+<strong>Why it matters:</strong> The trend line reveals whether momentum is accelerating or decelerating — key for identifying which months saw campaign launches or list changes.`
+  },
+  'breakdown': {
+    title: 'Monthly Breakdown',
+    source: 'sheets', sourceLabel: 'Live · Google Sheets',
+    body: `<strong>What it is:</strong> A month-by-month table of lead counts, daily pace, and growth vs. the prior month — from August 2025 through February 2026.<br><br>
+<strong>Where it comes from:</strong> Computed live from the Google Sheet. The "Month" column in the sheet uses Spanish month names (Agosto, Septiembre, etc.) which the dashboard maps to English.<br><br>
+<div class="formula">Leads/Day = Month Count ÷ Days in Month
+vs Prev    = (This Month - Last Month) ÷ Last Month</div>
+February shows actual data through the latest date in the sheet, with a projected row extrapolated to month-end.<br><br>
+<strong>Why it matters:</strong> The month-over-month trend column quickly shows which months had positive or negative momentum.`
+  },
+  'types': {
+    title: 'Lead Types',
+    source: 'sheets', sourceLabel: 'Live · Google Sheets',
+    body: `<strong>What it is:</strong> A breakdown of how leads are responding to outreach — categorized by response intent.<br><br>
+<strong>Where it comes from:</strong> The Google Sheet has a <strong>Response Type</strong> column. Each row is classified as one of:<br><br>
+• <strong style="color:#4a90d9;">Interested / Requesting More Info</strong> — warm lead asking for details<br>
+• <strong style="color:#a78bfa;">Forwarded Internally</strong> — passed to a colleague or decision-maker<br>
+• <strong style="color:#fbbf24;">Meeting Request</strong> — explicit request for a call or meeting<br>
+• <strong style="color:#a0a8b8;">Other</strong> — unclassified or ambiguous responses<br><br>
+<strong>Why it matters:</strong> The mix of response types reveals how engaged leads are. A high proportion of Meeting Requests and Forwards signals strong message-market fit.`
+  },
+  'march': {
+    title: 'March 2026 Forecast',
+    source: 'calc', sourceLabel: 'Calculated from live sheet data',
+    body: `<strong>What it is:</strong> Three scenarios projecting how many leads Brian will generate in March 2026.<br><br>
+<strong>How each scenario is calculated:</strong><br>
+<div class="formula">Conservative = current Leads/Day × 31 days
+Baseline     = (January count + Feb projected) ÷ 2
+Optimistic   = Conservative × 1.35</div>
+<strong>The new campaign factor:</strong> The <strong>Custom Search Query</strong> campaign launched Feb 20 — just days ago. It hasn't reached full send volume yet. As it ramps up through March, it's expected to add meaningful volume on top of the current pace, making the Optimistic scenario the most realistic if engagement holds.<br><br>
+<strong>Why it matters:</strong> These scenarios give the client a realistic range to plan around — not just a single number.`
+  },
+  'milestones': {
+    title: 'Lead Milestones',
+    source: 'calc', sourceLabel: 'Calculated from live sheet data',
+    body: `<strong>What it is:</strong> Estimated dates for when Brian's cumulative lead count will hit 300, 400, and 500 total leads.<br><br>
+<strong>How it's calculated:</strong><br>
+<div class="formula">Days to Target = CEIL((Target - Total Leads) ÷ Leads/Day)
+Date = Today + Days to Target</div>
+Two paces are shown:<br>
+• <strong>Current pace</strong> — uses the live Leads/Day rate from the sheet<br>
+• <strong>Optimistic pace</strong> — assumes 2.5 leads/day as the new campaign ramps up<br><br>
+<strong>Why it matters:</strong> Milestone tracking gives the client concrete, forward-looking goals and creates natural checkpoints to assess campaign performance.`
+  },
+  'pipeline': {
+    title: 'Pipeline Health',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> Six key conversion ratios that together describe the health and efficiency of the outreach pipeline.<br><br>
+<strong>Where the numbers come from:</strong> The base data — emails sent, total replies, opportunities, meetings — was pulled from Instantly via BridgeKit on Feb 24, 2026. The "Leads to Next Meeting" and "Projected March Meetings" values are calculated dynamically from live Google Sheets data.<br><br>
+<strong>Why it matters:</strong> These ratios let Brian and the client understand not just <em>how many</em> leads are coming in, but <em>how well</em> the system is converting at each stage.`
+  },
+  'reply-rate': {
+    title: 'Reply Rate',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> The percentage of sent emails that received any reply.<br><br>
+<div class="formula">Reply Rate = 877 replies ÷ 116,252 emails sent = 0.75%</div>
+<strong>Industry context:</strong> Cold email reply rates typically range from <strong>0.5% to 1%</strong>. Brian's 0.75% sits comfortably within the healthy range, indicating good list quality and message relevance.<br><br>
+<strong>Where it comes from:</strong> Both the reply count (877) and emails sent (116,252) are from Instantly, pulled via BridgeKit on Feb 24, 2026.`
+  },
+  'reply-opp': {
+    title: 'Reply → Opportunity Rate',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> Of all replies received, what percentage were positive/qualified opportunities.<br><br>
+<div class="formula">Reply → Opp = 239 opportunities ÷ 877 total replies = 27.4%</div>
+<strong>What this means:</strong> Nearly <strong>1 in 3 replies</strong> is a qualified lead — this is a strong signal quality indicator. It means Brian's targeting and messaging are attracting genuinely interested prospects, not just curious or unqualified replies.<br><br>
+<strong>Where it comes from:</strong> Both figures pulled from Instantly via BridgeKit on Feb 24, 2026.`
+  },
+  'opp-meeting': {
+    title: 'Opportunity → Meeting Rate',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> Of all qualified opportunities, what percentage explicitly requested a meeting.<br><br>
+<div class="formula">Opp → Meeting = 12 meetings ÷ 239 opportunities = 5.0%</div>
+<strong>What this means:</strong> For every 20 opportunities (leads), Brian generates approximately 1 meeting request. This is a healthy conversion rate for cold outreach at scale.<br><br>
+<strong>Where it comes from:</strong> Instantly's AI classifies replies as meeting requests. Both figures were pulled via BridgeKit on Feb 24, 2026.`
+  },
+  'next-meeting': {
+    title: 'Leads to Next Meeting',
+    source: 'calc', sourceLabel: 'Calculated: Instantly + Live Sheet',
+    body: `<strong>What it is:</strong> An estimate of how many more leads are needed before the next meeting request comes in.<br><br>
+<div class="formula">Leads per Meeting = ROUND(239 opps ÷ 12 meetings) = ~20
+Leads to Next    = 20 - (Total Leads mod 20)</div>
+<strong>Example:</strong> If Brian has 247 total leads and meetings arrive every ~20 leads, then he needs about 13 more leads before the next meeting is statistically expected.<br><br>
+<strong>Live element:</strong> The total lead count updates from the Google Sheet, so this number changes with every refresh.`
+  },
+  'emails-opp': {
+    title: 'Emails per Opportunity',
+    source: 'instantly', sourceLabel: 'Instantly · Synced Feb 24, 2026',
+    body: `<strong>What it is:</strong> How many emails need to be sent, on average, to generate one qualified lead opportunity.<br><br>
+<div class="formula">Emails per Opp = 116,252 emails ÷ 239 opportunities = 484</div>
+<strong>How to use this:</strong> This is Brian's "cost per lead" in email units. If you want to hit 50 new opportunities in March, you need to have roughly <strong>24,200 emails</strong> queued up.<br><br>
+<strong>Why it matters:</strong> This metric is essential for capacity planning — it directly connects list size and send volume to expected lead output.`
+  },
+  'march-meetings': {
+    title: 'Projected March Meetings',
+    source: 'calc', sourceLabel: 'Calculated: Instantly + Live Sheet',
+    body: `<strong>What it is:</strong> An estimate of how many new meeting requests Brian can expect in March 2026.<br><br>
+<div class="formula">March Meetings = ROUND(March Conservative Forecast × 5%)</div>
+<strong>The 5% rate</strong> comes from the historical Instantly data: 12 meetings from 239 opportunities = 5.0% conversion.<br><br>
+<strong>The March forecast</strong> uses the conservative scenario (current Leads/Day × 31 days), so this estimate is intentionally conservative. With the new campaign ramping, actual results could be higher.<br><br>
+<strong>Live element:</strong> This recalculates automatically when you refresh sheet data, since it depends on the current Leads/Day pace.`
+  }
+};
 
-        async function loadInstantlyStats() {
-            try {
-                const response = await fetch('./data/instantly-stats.json?' + Date.now());
-                const data = await response.json();
-                instantlyStats = {
-                    emailsSent: data.stats?.emailsSent || 8909,
-                    replies: data.stats?.replies || 56,
-                    opportunities: data.stats?.opportunities || 21
-                };
-                document.getElementById('syncTime').textContent = 
-                    new Date(data.lastUpdated || Date.now()).toLocaleString() + ' (BridgeKit)';
-            } catch (e) {
-                instantlyStats = { emailsSent: 8909, replies: 56, opportunities: 21 };
-            }
-            updateFunnelDisplay();
+function openModal(id) {
+  const m = MODALS[id];
+  if (!m) return;
+  const srcIcons = { sheets: '📊', instantly: '⚡', calc: '🔢' };
+  document.getElementById('modal-source-tag').className = 'modal-source ' + m.source;
+  document.getElementById('modal-source-tag').innerHTML = (srcIcons[m.source] || '') + ' ' + m.sourceLabel;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-body').innerHTML = m.body;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ─────────────────────────────────────────────────────────
+//  Chart init
+// ─────────────────────────────────────────────────────────
+function initCharts() {
+  const tCtx = document.getElementById('trendChart').getContext('2d');
+  const tGrad = tCtx.createLinearGradient(0, 0, 0, 280);
+  tGrad.addColorStop(0, 'rgba(74,144,217,0.25)');
+  tGrad.addColorStop(1, 'rgba(74,144,217,0.00)');
+
+  trendChart = new Chart(tCtx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Leads', data: [],
+          borderColor:'#4a90d9', backgroundColor:tGrad, borderWidth:3,
+          pointBackgroundColor:'#fff', pointBorderColor:'#4a90d9', pointBorderWidth:2.5,
+          pointRadius:6, pointHoverRadius:8, tension:0.35, fill:true,
+        },
+        {
+          label: 'Leads/Day (×25)', data: [],
+          borderColor:'#2ecc71', borderWidth:2, borderDash:[6,4],
+          pointBackgroundColor:'#2ecc71', pointBorderColor:'#2ecc71',
+          pointRadius:4, pointHoverRadius:6, tension:0.35, fill:false,
         }
-
-        function updateFunnelDisplay() {
-            document.getElementById('emailsSent').textContent = instantlyStats.emailsSent.toLocaleString();
-            document.getElementById('totalReplies').textContent = instantlyStats.replies;
-            document.getElementById('opportunities').textContent = instantlyStats.opportunities;
-            
-            const replyRate = instantlyStats.emailsSent > 0 
-                ? ((instantlyStats.replies / instantlyStats.emailsSent) * 100).toFixed(2) : 0;
-            document.getElementById('replyRate').textContent = replyRate + '%';
-            document.getElementById('healthReplyRate').textContent = replyRate + '%';
-            
-            const oppRate = instantlyStats.replies > 0 
-                ? ((instantlyStats.opportunities / instantlyStats.replies) * 100).toFixed(1) : 0;
-            document.getElementById('oppRate').textContent = oppRate + '% of replies';
-            document.getElementById('healthOppRate').textContent = oppRate + '%';
-            document.getElementById('replyToOppRate').textContent = oppRate + '%';
-            
-            const emailsPerOpp = instantlyStats.opportunities > 0 
-                ? Math.round(instantlyStats.emailsSent / instantlyStats.opportunities) : '—';
-            document.getElementById('emailsPerOpp').textContent = emailsPerOpp;
-            document.getElementById('healthEmailsPerOpp').textContent = emailsPerOpp;
-            
-            document.getElementById('funnelSubtitle').textContent = 
-                `${instantlyStats.emailsSent.toLocaleString()} emails sent across 1 active campaign — full-funnel conversion breakdown`;
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ intersect:false, mode:'index' },
+      plugins:{
+        legend:{ display:true, position:'top', align:'end',
+          labels:{ color:'#a0a8b8', font:{family:'DM Sans',size:11}, boxWidth:20, padding:16, usePointStyle:true, pointStyle:'line' }},
+        tooltip:{
+          backgroundColor:'#1e2130', titleColor:'#fff', bodyColor:'#c5c9d6',
+          borderColor:'#333750', borderWidth:1,
+          titleFont:{family:'DM Sans',weight:'600',size:13}, bodyFont:{family:'DM Sans',size:12},
+          padding:12, cornerRadius:10, displayColors:true,
+          callbacks:{ label: ctx => ctx.datasetIndex===0 ? ` Leads: ${ctx.raw}` : ` Leads/Day: ${(ctx.raw/25).toFixed(2)}` }
         }
+      },
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#a0a8b8',font:{family:'DM Sans',size:12,weight:'500'}} },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#a0a8b8',font:{family:'DM Sans',size:11},stepSize:10}, beginAtZero:true }
+      }
+    }
+  });
 
-        async function loadData() {
-            try {
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-                const response = await fetch(url);
-                const text = await response.text();
-                const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/);
-                if (!jsonStr) throw new Error('Parse error');
-                
-                const data = JSON.parse(jsonStr[1]);
-                const rows = data.table.rows;
-                const cols = data.table.cols;
-                
-                leadsData = rows.map(row => {
-                    const obj = {};
-                    cols.forEach((col, i) => {
-                        const cell = row.c[i];
-                        let value = '';
-                        if (cell) {
-                            if (cell.f) value = cell.f;
-                            else if (cell.v && typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
-                                const m = cell.v.match(/Date\((\d+),(\d+),(\d+)\)/);
-                                if (m) value = `${m[1]}-${String(parseInt(m[2])+1).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-                            } else value = cell.v || '';
-                        }
-                        obj[col.label || `col${i}`] = value;
-                    });
-                    return obj;
-                }).filter(row => row.Date);
-                
-                updateDashboard();
-            } catch (error) {
-                console.error('Error:', error);
-            }
+  const dCtx = document.getElementById('typeChart').getContext('2d');
+  typeChart = new Chart(dCtx, {
+    type:'doughnut',
+    data:{
+      labels:['Interested / More Info','Other','Forwarded Internally','Meeting Request'],
+      datasets:[{ data:[0,0,0,0], backgroundColor:['#4a90d9','#a0a8b8','#a78bfa','#fbbf24'], borderColor:'#16213e', borderWidth:3, hoverOffset:6 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'#1e2130', titleColor:'#fff', bodyColor:'#c5c9d6',
+          borderColor:'#333750', borderWidth:1,
+          titleFont:{family:'DM Sans',weight:'600',size:13}, bodyFont:{family:'DM Sans',size:12},
+          padding:12, cornerRadius:10,
+          callbacks:{ label: ctx => { const t=ctx.dataset.data.reduce((a,b)=>a+b,0); return ` ${ctx.raw} (${t>0?((ctx.raw/t)*100).toFixed(1):0}%)`; } }
         }
-
-        function updateDashboard() {
-            const totalLeads = leadsData.length;
-            const dates = leadsData.map(l => new Date(l.Date)).filter(d => !isNaN(d));
-            const minDate = new Date(Math.min(...dates));
-            const maxDate = new Date(Math.max(...dates));
-            const daysDiff = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
-            const leadsPerDay = (totalLeads / daysDiff).toFixed(1);
-            
-            // Meeting keywords
-            const meetingKeywords = ['meeting', 'call', 'schedule', 'calendly', 'book', 'chat', 'discuss', 'connect'];
-            const meetingRequests = leadsData.filter(l => {
-                const rt = (l['Response Type'] || '').toLowerCase();
-                const pr = (l['Positive Response'] || '').toLowerCase();
-                return meetingKeywords.some(k => rt.includes(k) || pr.includes(k));
-            }).length;
-            
-            // Top stats
-            document.getElementById('totalLeads').textContent = totalLeads;
-            document.getElementById('leadsPerDay').textContent = leadsPerDay;
-            document.getElementById('meetingRequests').textContent = meetingRequests;
-            document.getElementById('marchForecast').textContent = Math.round(leadsPerDay * 31);
-            
-            // Meeting metrics
-            document.getElementById('meetings').textContent = meetingRequests;
-            const meetingPct = totalLeads > 0 ? ((meetingRequests / totalLeads) * 100).toFixed(1) : 0;
-            document.getElementById('meetingRate').textContent = `${meetingPct}% of leads`;
-            document.getElementById('leadsPerMeeting').textContent = meetingRequests > 0 ? Math.round(totalLeads / meetingRequests) : '—';
-            document.getElementById('healthMeetingRate').textContent = meetingPct + '%';
-            document.getElementById('healthLeadsToMeeting').textContent = meetingRequests > 0 ? Math.round(totalLeads / meetingRequests) : '—';
-            document.getElementById('healthMarchMeetings').textContent = Math.round((leadsPerDay * 31) * (meetingPct / 100));
-            
-            // Forecasts
-            const avgPace = totalLeads / Math.max(1, Object.keys(getMonthlyData()).length);
-            document.getElementById('forecastConservative').textContent = Math.round(leadsPerDay * 31);
-            document.getElementById('forecastBaseline').textContent = Math.round(avgPace);
-            document.getElementById('forecastOptimistic').textContent = Math.round(leadsPerDay * 31 * 1.2);
-            
-            // Lead types
-            const typeCount = {};
-            leadsData.forEach(l => {
-                let type = l['Response Type'] || 'Other';
-                if (type.toLowerCase().includes('interested') || type.toLowerCase().includes('send info')) type = 'Interested / Send Info';
-                else if (type.toLowerCase().includes('meeting') || type.toLowerCase().includes('call')) type = 'Meeting Request';
-                else if (type.toLowerCase().includes('escalated') || type.toLowerCase().includes('forward')) type = 'Forwarded Internally';
-                else if (type.toLowerCase().includes('disqualified') || type.toLowerCase().includes('low volume')) type = 'Disqualified';
-                else if (type.toLowerCase().includes('not interested')) type = 'Not Interested';
-                else type = 'Other';
-                typeCount[type] = (typeCount[type] || 0) + 1;
-            });
-            
-            const typeColors = {
-                'Interested / Send Info': 'brand-green',
-                'Meeting Request': 'text-blue-400',
-                'Forwarded Internally': 'text-purple-400',
-                'Other': 'text-gray-400',
-                'Disqualified': 'text-red-400',
-                'Not Interested': 'text-orange-400'
-            };
-            
-            document.getElementById('leadTypes').innerHTML = Object.entries(typeCount)
-                .sort((a, b) => b[1] - a[1])
-                .map(([type, count]) => `
-                    <div class="flex justify-between items-center">
-                        <span>${type}</span>
-                        <span class="font-medium ${typeColors[type] || ''}">${count}</span>
-                    </div>
-                `).join('');
-            
-            updateLeadTypesChart(typeCount);
-            
-            // Industry
-            const industryCount = {};
-            leadsData.forEach(l => {
-                let ind = l.Industry || 'Unknown';
-                if (ind.includes('/')) ind = ind.split('/')[0].trim();
-                industryCount[ind] = (industryCount[ind] || 0) + 1;
-            });
-            updateIndustryChart(industryCount);
-            
-            // Monthly
-            const monthlyData = getMonthlyData();
-            const sortedMonths = Object.keys(monthlyData).sort();
-            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            
-            let prevCount = 0;
-            document.getElementById('monthlyTable').innerHTML = sortedMonths.map(month => {
-                const [year, m] = month.split('-');
-                const count = monthlyData[month];
-                const daysInMonth = new Date(year, m, 0).getDate();
-                const pace = (count / daysInMonth).toFixed(1);
-                const change = prevCount > 0 ? (((count - prevCount) / prevCount) * 100).toFixed(0) : '—';
-                const changeClass = change > 0 ? 'text-green-400' : change < 0 ? 'text-red-400' : 'text-gray-400';
-                prevCount = count;
-                const isCurrent = month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-                return `<tr class="border-b border-white/5">
-                    <td class="py-2">${monthNames[parseInt(m)-1]} ${year.slice(2)}${isCurrent ? ' *' : ''}</td>
-                    <td class="py-2 font-medium">${count}</td>
-                    <td class="py-2">${pace}</td>
-                    <td class="py-2 ${changeClass}">${change !== '—' ? (change > 0 ? '+' : '') + change + '%' : '—'}</td>
-                </tr>`;
-            }).join('');
-            
-            updateTrendChart(sortedMonths, monthlyData, monthNames);
-            
-            // Recent leads
-            const recent = [...leadsData].sort((a, b) => new Date(b.Date) - new Date(a.Date)).slice(0, 10);
-            document.getElementById('recentLeads').innerHTML = recent.map(l => `
-                <tr class="border-b border-white/5">
-                    <td class="py-2">${l.Date}</td>
-                    <td class="py-2 font-medium">${l['Contact Name'] || '—'}</td>
-                    <td class="py-2">${l.Company || '—'}</td>
-                    <td class="py-2 text-gray-400">${(l.Industry || '—').slice(0, 20)}</td>
-                    <td class="py-2"><span class="px-2 py-1 bg-white/10 text-xs rounded">${l['Response Type'] || 'Other'}</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function getMonthlyData() {
-            const monthlyData = {};
-            leadsData.forEach(l => {
-                const date = new Date(l.Date);
-                if (isNaN(date)) return;
-                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                monthlyData[key] = (monthlyData[key] || 0) + 1;
-            });
-            return monthlyData;
-        }
-
-        function updateTrendChart(months, data, monthNames) {
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            if (chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: months.map(m => { const [y,mo] = m.split('-'); return `${monthNames[parseInt(mo)-1]} ${y.slice(2)}`; }),
-                    datasets: [{
-                        label: 'Leads',
-                        data: months.map(m => data[m]),
-                        backgroundColor: 'rgba(0, 166, 81, 0.1)',
-                        borderColor: '#00a651',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#00a651',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
-                    }
-                }
-            });
-        }
-
-        function updateLeadTypesChart(typeCount) {
-            const ctx = document.getElementById('leadTypesChart').getContext('2d');
-            if (leadTypesChart) leadTypesChart.destroy();
-            const colors = { 'Interested / Send Info': '#00a651', 'Meeting Request': '#003366', 'Forwarded Internally': '#0088cc', 'Other': '#6b7280', 'Disqualified': '#ef4444', 'Not Interested': '#f97316' };
-            leadTypesChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(typeCount),
-                    datasets: [{ data: Object.values(typeCount), backgroundColor: Object.keys(typeCount).map(k => colors[k] || '#6b7280'), borderWidth: 0 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)', padding: 10, font: { size: 10 } } } }
-                }
-            });
-        }
-
-        function updateIndustryChart(industryCount) {
-            const ctx = document.getElementById('industryChart').getContext('2d');
-            if (industryChart) industryChart.destroy();
-            const sorted = Object.entries(industryCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            industryChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted.map(([n]) => n.length > 20 ? n.slice(0,20) + '...' : n),
-                    datasets: [{ data: sorted.map(([,c]) => c), backgroundColor: '#00a651', borderRadius: 4 }]
-                },
-                options: {
-                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
-                        y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        // Init
-        (async () => {
-            await loadInstantlyStats();
-            await loadData();
-        })();
-    </script>
+      }
+    }
+  });
+}
+</script>
 </body>
 </html>
