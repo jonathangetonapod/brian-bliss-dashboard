@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source1 Parcel — Live Campaign Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); }
+        .stat-card { background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%); }
+        .glow { box-shadow: 0 0 40px rgba(59,130,246,0.15); }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="border-b border-white/10 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-lg">S1</div>
+                <div>
+                    <h1 class="font-semibold text-lg">Source1 Parcel</h1>
+                    <p class="text-xs text-gray-400">Carrier Negotiations & Shipment Auditing</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-400">
+                <span class="w-2 h-2 bg-green-400 rounded-full pulse-slow"></span>
+                <span>Live Dashboard</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Sheet URL Input -->
+        <div class="mb-6 card rounded-xl p-4">
+            <div class="flex gap-4 items-center">
+                <label class="text-sm text-gray-400">Sheet URL</label>
+                <input type="text" id="sheetUrl" 
+                    value="https://docs.google.com/spreadsheets/d/1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs/edit"
+                    class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-gray-300 focus:outline-none focus:border-blue-500">
+                <button onclick="loadData()" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Top Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="stat-card rounded-xl p-5 glow">
+                <p class="text-gray-400 text-sm mb-1">Total Leads</p>
+                <p class="text-3xl font-bold" id="totalLeads">—</p>
+                <p class="text-xs text-gray-500 mt-1">All campaigns</p>
+            </div>
+            <div class="stat-card rounded-xl p-5">
+                <p class="text-gray-400 text-sm mb-1">Leads / Day</p>
+                <p class="text-3xl font-bold" id="leadsPerDay">—</p>
+                <p class="text-xs text-gray-500 mt-1">Current pace</p>
+            </div>
+            <div class="stat-card rounded-xl p-5">
+                <p class="text-gray-400 text-sm mb-1">Meeting Requests</p>
+                <p class="text-3xl font-bold text-green-400" id="meetingRequests">—</p>
+                <p class="text-xs text-gray-500 mt-1">High intent</p>
+            </div>
+            <div class="stat-card rounded-xl p-5">
+                <p class="text-gray-400 text-sm mb-1">March Forecast</p>
+                <p class="text-3xl font-bold text-blue-400" id="marchForecast">—</p>
+                <p class="text-xs text-gray-500 mt-1">At current pace</p>
+            </div>
+        </div>
+
+        <!-- Sync Info -->
+        <p class="text-center text-xs text-gray-500 mb-8">
+            ⚡ Google Sheets data · Synced <span id="syncTime">—</span> via BridgeKit
+        </p>
+
+        <!-- Campaign Funnel -->
+        <div class="card rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-2">Campaign Funnel Performance</h2>
+            <p class="text-sm text-gray-400 mb-6" id="funnelSubtitle">Loading campaign data...</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="text-center p-4 bg-white/5 rounded-lg">
+                    <p class="text-2xl font-bold text-blue-400" id="emailsSent">8,909</p>
+                    <p class="text-xs text-gray-400 mt-1">Emails Sent</p>
+                    <p class="text-xs text-gray-500">100%</p>
+                </div>
+                <div class="text-center p-4 bg-white/5 rounded-lg relative">
+                    <div class="absolute left-0 top-1/2 -translate-x-1/2 text-gray-600">›</div>
+                    <p class="text-2xl font-bold text-purple-400" id="totalReplies">56</p>
+                    <p class="text-xs text-gray-400 mt-1">Total Replies</p>
+                    <p class="text-xs text-gray-500" id="replyRate">0.63%</p>
+                </div>
+                <div class="text-center p-4 bg-white/5 rounded-lg relative">
+                    <div class="absolute left-0 top-1/2 -translate-x-1/2 text-gray-600">›</div>
+                    <p class="text-2xl font-bold text-yellow-400" id="opportunities">21</p>
+                    <p class="text-xs text-gray-400 mt-1">Opportunities</p>
+                    <p class="text-xs text-gray-500" id="oppRate">37.5% of replies</p>
+                </div>
+                <div class="text-center p-4 bg-white/5 rounded-lg relative">
+                    <div class="absolute left-0 top-1/2 -translate-x-1/2 text-gray-600">›</div>
+                    <p class="text-2xl font-bold text-green-400" id="meetings">—</p>
+                    <p class="text-xs text-gray-400 mt-1">Meetings</p>
+                    <p class="text-xs text-gray-500" id="meetingRate">—</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
+                <p>📧 <span id="emailsPerOpp">424</span> emails per opportunity</p>
+                <p>📅 1 meeting every ~<span id="leadsPerMeeting">—</span> leads</p>
+                <p>📈 Reply → Opp rate: <span id="replyToOppRate">37.5%</span> — strong qualifier</p>
+            </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <!-- Active Campaign -->
+            <div class="card rounded-xl p-6">
+                <h2 class="text-lg font-semibold mb-4">Active Campaign</h2>
+                <div class="bg-white/5 rounded-lg p-4 border-l-4 border-blue-500">
+                    <h3 class="font-medium">Shipping Rate Negotiation</h3>
+                    <p class="text-sm text-gray-400 mt-1">Launched Dec 2025 · 3-step sequence</p>
+                    <div class="flex gap-2 mt-3">
+                        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Active</span>
+                        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">8.9K sent</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lead Types -->
+            <div class="card rounded-xl p-6">
+                <h2 class="text-lg font-semibold mb-4">Lead Types</h2>
+                <p class="text-sm text-gray-400 mb-4">How leads are responding to outreach</p>
+                <div class="space-y-3" id="leadTypes">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">Loading...</span>
+                        <span class="text-sm font-medium">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Breakdown -->
+        <div class="card rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-4">Monthly Breakdown</h2>
+            <p class="text-sm text-gray-400 mb-4">Leads and daily pace by month</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-400 border-b border-white/10">
+                            <th class="pb-3">Month</th>
+                            <th class="pb-3">Leads</th>
+                            <th class="pb-3">Leads/Day</th>
+                            <th class="pb-3">vs Prev</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTable">
+                        <tr><td colspan="4" class="py-4 text-gray-500">Hit Refresh to load</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lead Trend Chart -->
+        <div class="card rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-4">Lead Trend</h2>
+            <p class="text-sm text-gray-400 mb-4">Monthly leads showing campaign momentum over time</p>
+            <div class="h-64">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pipeline Health -->
+        <div class="card rounded-xl p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-2">Pipeline Health</h2>
+            <p class="text-sm text-gray-400 mb-6">Key conversion metrics across the full outreach funnel</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-blue-400" id="healthReplyRate">0.63%</p>
+                    <p class="text-sm text-gray-400 mt-2">Reply Rate</p>
+                    <p class="text-xs text-gray-500">Industry benchmark: 0.5–1%</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-green-400" id="healthOppRate">37.5%</p>
+                    <p class="text-sm text-gray-400 mt-2">Reply → Opportunity</p>
+                    <p class="text-xs text-gray-500">Strong signal quality</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-3xl font-bold text-yellow-400" id="healthMeetingRate">—</p>
+                    <p class="text-sm text-gray-400 mt-2">Opp → Meeting</p>
+                    <p class="text-xs text-gray-500">Conversion to booked calls</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="card rounded-xl p-6">
+            <h2 class="text-lg font-semibold mb-4">Recent Leads</h2>
+            <p class="text-sm text-gray-400 mb-4">Latest positive responses from outreach</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-400 border-b border-white/10">
+                            <th class="pb-3">Date</th>
+                            <th class="pb-3">Contact</th>
+                            <th class="pb-3">Company</th>
+                            <th class="pb-3">Industry</th>
+                            <th class="pb-3">Response Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentLeads">
+                        <tr><td colspan="5" class="py-4 text-gray-500">Hit Refresh to load</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 px-6 py-4 mt-12">
+        <p class="text-center text-xs text-gray-500">
+            ⚡ Powered by Lead Gen Jay · Data synced via BridgeKit
+        </p>
+    </footer>
+
+    <script>
+        // Google Sheets Configuration
+        const SHEET_ID = '1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs';
+        const SHEET_NAME = 'Positive Responses';
+        
+        // Instantly Stats (pre-loaded)
+        const instantlyStats = {
+            emailsSent: 8909,
+            replies: 56,
+            opportunities: 21
+        };
+
+        let chart = null;
+        let leadsData = [];
+
+        async function loadData() {
+            try {
+                // Fetch from Google Sheets (published as CSV)
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Parse the JSONP response
+                const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);/);
+                if (!jsonStr) throw new Error('Could not parse sheet data');
+                
+                const data = JSON.parse(jsonStr[1]);
+                const rows = data.table.rows;
+                const cols = data.table.cols;
+                
+                // Parse rows into objects
+                leadsData = rows.map(row => {
+                    const obj = {};
+                    cols.forEach((col, i) => {
+                        const cell = row.c[i];
+                        obj[col.label || `col${i}`] = cell ? (cell.v || cell.f || '') : '';
+                    });
+                    return obj;
+                }).filter(row => row.Date); // Filter out empty rows
+                
+                updateDashboard();
+                document.getElementById('syncTime').textContent = new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading sheet data. Make sure the sheet is shared publicly.');
+            }
+        }
+
+        function updateDashboard() {
+            const totalLeads = leadsData.length;
+            
+            // Calculate date range
+            const dates = leadsData.map(l => new Date(l.Date)).filter(d => !isNaN(d));
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            const daysDiff = Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+            const leadsPerDay = (totalLeads / daysDiff).toFixed(1);
+            
+            // Count meeting requests
+            const meetingKeywords = ['meeting', 'call', 'schedule', 'calendly', 'book'];
+            const meetingRequests = leadsData.filter(l => {
+                const responseType = (l['Response Type'] || '').toLowerCase();
+                const response = (l['Positive Response'] || '').toLowerCase();
+                return meetingKeywords.some(k => responseType.includes(k) || response.includes(k));
+            }).length;
+            
+            // Update top stats
+            document.getElementById('totalLeads').textContent = totalLeads;
+            document.getElementById('leadsPerDay').textContent = leadsPerDay;
+            document.getElementById('meetingRequests').textContent = meetingRequests;
+            document.getElementById('marchForecast').textContent = Math.round(leadsPerDay * 31);
+            
+            // Update funnel
+            document.getElementById('meetings').textContent = meetingRequests;
+            const meetingPct = totalLeads > 0 ? ((meetingRequests / totalLeads) * 100).toFixed(1) : 0;
+            document.getElementById('meetingRate').textContent = `${meetingPct}% of leads`;
+            document.getElementById('leadsPerMeeting').textContent = meetingRequests > 0 ? Math.round(totalLeads / meetingRequests) : '—';
+            document.getElementById('funnelSubtitle').textContent = `${instantlyStats.emailsSent.toLocaleString()} emails sent · ${totalLeads} qualified leads tracked`;
+            
+            // Update health metrics
+            document.getElementById('healthMeetingRate').textContent = meetingRequests > 0 ? `${meetingPct}%` : '—';
+            
+            // Count lead types
+            const typeCount = {};
+            leadsData.forEach(l => {
+                let type = l['Response Type'] || 'Other';
+                // Simplify types
+                if (type.toLowerCase().includes('interested')) type = 'Interested / More Info';
+                else if (type.toLowerCase().includes('meeting') || type.toLowerCase().includes('call')) type = 'Meeting Request';
+                else if (type.toLowerCase().includes('escalated') || type.toLowerCase().includes('forward')) type = 'Forwarded Internally';
+                else if (type.toLowerCase().includes('disqualified') || type.toLowerCase().includes('not interested')) type = 'Disqualified';
+                else type = 'Other';
+                
+                typeCount[type] = (typeCount[type] || 0) + 1;
+            });
+            
+            const typeColors = {
+                'Interested / More Info': 'text-blue-400',
+                'Meeting Request': 'text-green-400',
+                'Forwarded Internally': 'text-purple-400',
+                'Other': 'text-gray-400',
+                'Disqualified': 'text-red-400'
+            };
+            
+            document.getElementById('leadTypes').innerHTML = Object.entries(typeCount)
+                .sort((a, b) => b[1] - a[1])
+                .map(([type, count]) => `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">${type}</span>
+                        <span class="text-sm font-medium ${typeColors[type] || 'text-gray-400'}">${count}</span>
+                    </div>
+                `).join('');
+            
+            // Monthly breakdown
+            const monthlyData = {};
+            leadsData.forEach(l => {
+                const date = new Date(l.Date);
+                if (isNaN(date)) return;
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+            });
+            
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            let prevCount = 0;
+            document.getElementById('monthlyTable').innerHTML = sortedMonths.map(month => {
+                const [year, m] = month.split('-');
+                const count = monthlyData[month];
+                const daysInMonth = new Date(year, m, 0).getDate();
+                const pace = (count / daysInMonth).toFixed(1);
+                const change = prevCount > 0 ? (((count - prevCount) / prevCount) * 100).toFixed(0) : '—';
+                const changeClass = change > 0 ? 'text-green-400' : change < 0 ? 'text-red-400' : 'text-gray-400';
+                prevCount = count;
+                
+                const isCurrentMonth = month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+                
+                return `
+                    <tr class="border-b border-white/5">
+                        <td class="py-3">${monthNames[parseInt(m) - 1]} ${year} ${isCurrentMonth ? '*' : ''}</td>
+                        <td class="py-3 font-medium">${count}</td>
+                        <td class="py-3">${pace}</td>
+                        <td class="py-3 ${changeClass}">${change !== '—' ? (change > 0 ? '+' : '') + change + '%' : '—'}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Update chart
+            updateChart(sortedMonths, monthlyData, monthNames);
+            
+            // Recent leads table
+            const recentLeads = [...leadsData]
+                .sort((a, b) => new Date(b.Date) - new Date(a.Date))
+                .slice(0, 10);
+            
+            document.getElementById('recentLeads').innerHTML = recentLeads.map(l => `
+                <tr class="border-b border-white/5">
+                    <td class="py-3">${new Date(l.Date).toLocaleDateString()}</td>
+                    <td class="py-3 font-medium">${l['Contact Name'] || '—'}</td>
+                    <td class="py-3">${l.Company || '—'}</td>
+                    <td class="py-3 text-gray-400">${l.Industry || '—'}</td>
+                    <td class="py-3">
+                        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">${l['Response Type'] || 'Other'}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateChart(months, data, monthNames) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (chart) chart.destroy();
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months.map(m => {
+                        const [year, month] = m.split('-');
+                        return `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`;
+                    }),
+                    datasets: [{
+                        label: 'Leads',
+                        data: months.map(m => data[m]),
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
