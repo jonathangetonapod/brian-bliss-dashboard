@@ -620,8 +620,8 @@
 const DEFAULT_URL = 'https://docs.google.com/spreadsheets/d/1GLt-GCn-b1JZAD2EvQLY7r3fiLNg_6aL_RpGesRnHqs/edit?gid=0#gid=0';
 const LS_KEY = 'btm_sheet_url';
 
-const MONTH_ORDER  = ['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero'];
-const MONTH_LABELS = { Agosto:'Aug', Septiembre:'Sep', Octubre:'Oct', Noviembre:'Nov', Diciembre:'Dec', Enero:'Jan', Febrero:'Feb' };
+const MONTH_ORDER  = ['Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero'];
+const MONTH_LABELS = { Julio:'Jul', Agosto:'Aug', Septiembre:'Sep', Octubre:'Oct', Noviembre:'Nov', Diciembre:'Dec', Enero:'Jan', Febrero:'Feb' };
 const MONTH_DAYS   = { Agosto:31, Septiembre:30, Octubre:31, Noviembre:30, Diciembre:31, Enero:31, Febrero:28 };
 
 // Instantly data — BridgeKit pull Feb 24, 2026
@@ -702,30 +702,29 @@ function parseSheetUrl(url) {
 function parseCSV(csv) {
   const lines = csv.split('\n');
   if (lines.length < 2) return [];
-  const headers = splitLine(lines[0]);
-  const monthNames = { '01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio',
-                       '07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre' };
+  let headers = splitLine(lines[0]);
+  
+  // Fix: First column is Month but header might be empty
+  if (headers[0] === '' || headers[0] === '""') {
+    headers[0] = 'Month';
+  }
   
   return lines.slice(1).filter(l => l.trim()).map(l => {
     const vals = splitLine(l);
-    const row = headers.reduce((o, h, i) => ({ ...o, [h.trim()]: (vals[i] || '').trim() }), {});
+    const row = headers.reduce((o, h, i) => ({ ...o, [h.trim() || 'Month']: (vals[i] || '').replace(/^"|"$/g, '').trim() }), {});
     
-    // Convert Date to Month for Brian Bliss sheet format
-    if (row['Date'] && !row['Month']) {
-      const dateParts = row['Date'].match(/(\d{4})-(\d{2})-(\d{2})/);
-      if (dateParts) {
-        row['Month'] = monthNames[dateParts[2]] || '';
-        row['Response Date'] = row['Date'];
-      }
+    // Use Date as Response Date if available
+    if (row['Date']) {
+      row['Response Date'] = row['Date'];
     }
     
     // Normalize Response Type
     const rt = (row['Response Type'] || '').toLowerCase();
-    if (rt.includes('meeting') || rt.includes('call') || rt.includes('schedule')) {
+    if (rt.includes('meeting') || rt.includes('call request') || rt.includes('schedule')) {
       row['Response Type'] = 'Meeting Request';
     } else if (rt.includes('forward') || rt.includes('escalat')) {
       row['Response Type'] = 'Forwarded Internally';
-    } else if (rt.includes('interested') || rt.includes('send info') || rt.includes('info')) {
+    } else if (rt.includes('interested') || rt.includes('send info') || rt.includes('rate')) {
       row['Response Type'] = 'Interested / Requesting More Info';
     }
     
