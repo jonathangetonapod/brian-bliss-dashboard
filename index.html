@@ -326,7 +326,22 @@
                     const obj = {};
                     cols.forEach((col, i) => {
                         const cell = row.c[i];
-                        obj[col.label || `col${i}`] = cell ? (cell.v || cell.f || '') : '';
+                        let value = '';
+                        if (cell) {
+                            // Handle Google Sheets date format: Date(year,month,day)
+                            if (cell.v && typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+                                const match = cell.v.match(/Date\((\d+),(\d+),(\d+)\)/);
+                                if (match) {
+                                    value = `${match[1]}-${String(parseInt(match[2])+1).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`;
+                                }
+                            } else if (cell.f) {
+                                // Use formatted value if available (already formatted date)
+                                value = cell.f;
+                            } else {
+                                value = cell.v || '';
+                            }
+                        }
+                        obj[col.label || `col${i}`] = value;
                     });
                     return obj;
                 }).filter(row => row.Date); // Filter out empty rows
