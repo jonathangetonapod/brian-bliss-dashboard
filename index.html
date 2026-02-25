@@ -773,8 +773,8 @@ function renderDashboard(rows) {
     if (m in byMonth) byMonth[m]++;
     const t = (row['Response Type'] || '').toLowerCase();
     // Count by actual response types from Brian Bliss sheet
-    // Meeting = Call Requested, Meeting Requested, Meeting Scheduled, Meeting Completed
-    if (t.includes('call requested') || t.includes('meeting requested') || t.includes('meeting scheduled') || t.includes('meeting completed')) {
+    // Meeting = anything with "call" (but not escalated) or "meeting"
+    if ((t.includes('call') && !t.includes('escalat')) || t.includes('meeting')) {
       meetings++;
     } else if (t.includes('escalat') || t.includes('forward')) {
       forwarded++;
