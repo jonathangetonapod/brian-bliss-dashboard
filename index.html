@@ -720,12 +720,14 @@ function parseCSV(csv) {
     
     // Normalize Response Type
     const rt = (row['Response Type'] || '').toLowerCase();
-    if (rt.includes('meeting') || rt.includes('call request') || rt.includes('schedule')) {
+    if (rt.includes('meeting') || rt.includes('call request') || rt.includes('schedule') || rt.includes('call scheduled')) {
       row['Response Type'] = 'Meeting Request';
     } else if (rt.includes('forward') || rt.includes('escalat')) {
       row['Response Type'] = 'Forwarded Internally';
-    } else if (rt.includes('interested') || rt.includes('send info') || rt.includes('rate')) {
+    } else if (rt.includes('interested') || rt.includes('send info') || rt.includes('rate') || rt.includes('high priority') || rt.includes('follow up')) {
       row['Response Type'] = 'Interested / Requesting More Info';
+    } else if (rt.includes('disqualified') || rt.includes('low volume') || rt.includes('not interested')) {
+      row['Response Type'] = 'Other';
     }
     
     return row;
