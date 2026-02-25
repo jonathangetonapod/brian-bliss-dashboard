@@ -640,9 +640,11 @@ let trendChart = null, typeChart = null;
 // ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   initCharts();
-  const saved = localStorage.getItem(LS_KEY) || DEFAULT_URL;
-  document.getElementById('sheet-url').value = saved;
-  fetchAndRender(saved);
+  // Always use DEFAULT_URL to ensure correct sheet loads
+  const url = DEFAULT_URL;
+  document.getElementById('sheet-url').value = url;
+  console.log('Loading dashboard with URL:', url);
+  fetchAndRender(url);
 });
 
 // ─────────────────────────────────────────────────────────
@@ -680,15 +682,24 @@ async function fetchAndRender(url) {
   setStatus('loading');
   try {
     const { id, gid } = parseSheetUrl(url);
+    console.log('Sheet ID:', id, 'GID:', gid);
     if (!id) throw new Error('Could not find a spreadsheet ID in that URL.');
     const csvUrl = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}&t=${Date.now()}`;
+    console.log('Fetching:', csvUrl);
     const resp = await fetch(csvUrl, { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const rows = parseCSV(await resp.text());
+    const text = await resp.text();
+    console.log('Got CSV, length:', text.length, 'first 200 chars:', text.substring(0, 200));
+    const rows = parseCSV(text);
+    console.log('Parsed rows:', rows.length);
+    if (rows.length === 0) {
+      throw new Error('No rows parsed from CSV. Check sheet format - needs Month column.');
+    }
     renderDashboard(rows);
     localStorage.setItem(LS_KEY, url);
-    setStatus('ok', 'Up to date');
+    setStatus('ok', `Loaded ${rows.length} leads`);
   } catch (e) {
+    console.error('Error:', e);
     setStatus('err', e.message);
   }
 }
