@@ -703,9 +703,33 @@ function parseCSV(csv) {
   const lines = csv.split('\n');
   if (lines.length < 2) return [];
   const headers = splitLine(lines[0]);
+  const monthNames = { '01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio',
+                       '07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre' };
+  
   return lines.slice(1).filter(l => l.trim()).map(l => {
     const vals = splitLine(l);
-    return headers.reduce((o, h, i) => ({ ...o, [h.trim()]: (vals[i] || '').trim() }), {});
+    const row = headers.reduce((o, h, i) => ({ ...o, [h.trim()]: (vals[i] || '').trim() }), {});
+    
+    // Convert Date to Month for Brian Bliss sheet format
+    if (row['Date'] && !row['Month']) {
+      const dateParts = row['Date'].match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (dateParts) {
+        row['Month'] = monthNames[dateParts[2]] || '';
+        row['Response Date'] = row['Date'];
+      }
+    }
+    
+    // Normalize Response Type
+    const rt = (row['Response Type'] || '').toLowerCase();
+    if (rt.includes('meeting') || rt.includes('call') || rt.includes('schedule')) {
+      row['Response Type'] = 'Meeting Request';
+    } else if (rt.includes('forward') || rt.includes('escalat')) {
+      row['Response Type'] = 'Forwarded Internally';
+    } else if (rt.includes('interested') || rt.includes('send info') || rt.includes('info')) {
+      row['Response Type'] = 'Interested / Requesting More Info';
+    }
+    
+    return row;
   }).filter(r => r['Month'] && r['Month'].length > 0);
 }
 
