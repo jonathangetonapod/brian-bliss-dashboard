@@ -1,17 +1,17 @@
 {
-  "last_updated": "2026-02-27T13:00:00Z",
+  "last_updated": "2026-02-28T13:00:00Z",
   "workspace_id": "0f1c1612-3b95-4bdc-a67f-9f2ac1b7d15d",
   "stats": {
-    "start_date": "2026-02-20",
-    "end_date": "2026-02-27",
-    "emails_sent": 7379,
+    "start_date": "2026-02-21",
+    "end_date": "2026-02-28",
+    "emails_sent": 7349,
     "replies": 49,
-    "opportunities": 13,
+    "opportunities": 10,
     "reply_rate": 0
   },
   "campaigns": {
     "total": 1,
-    "items": [
+    "list": [
       {
         "id": "87e3c5a7-9ff9-4522-8b61-52eb76e8ac55",
         "name": "Shipping Rate Negotiation - 12/2/25",
